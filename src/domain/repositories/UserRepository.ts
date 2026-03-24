@@ -8,4 +8,6 @@ export interface UserRepository {
     username: string;
     role: "USER" | "ADMIN";
   }): Promise<User>;
+
+  findById(id: string): Promise<User | null>;
 }

@@ -20,4 +20,10 @@ export class PrismaUserRepository implements UserRepository {
       data
     });
   }
+
+  async findById(id: string) {
+  return prisma.user.findUnique({
+    where: { id }
+  });
+}
 }

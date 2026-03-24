@@ -1,27 +1,26 @@
 import type { RegisterUserDTO } from "../../dtos/RegisterUserDTO.js";
-import type { User } from "../../../domain/entities/user.js";
 import type { UserRepository } from "../../../domain/repositories/UserRepository.js";
 import bcrypt from "bcrypt";
 import type { UserResponseDTO } from "../../dtos/UserResponseDTO.js";
 
 export class RegisterUserUseCase {
-  constructor(private userRepository: UserRepository) {}
+  constructor(private userRepository: UserRepository) { }
 
   async execute(data: RegisterUserDTO): Promise<UserResponseDTO> {
-    
-    // 🔒 Validar existencia de campos
+
+    //  Validar existencia de campos
     if (!data.email || !data.password || !data.username) {
       throw new Error("Faltan campos obligatorios");
     }
 
-    // 🔒 Validar tipos (extra pro)
-    if (typeof data.email !== "string" || 
-        typeof data.password !== "string" || 
-        typeof data.username !== "string") {
+    //  Validar tipos (extra pro)
+    if (typeof data.email !== "string" ||
+      typeof data.password !== "string" ||
+      typeof data.username !== "string") {
       throw new Error("Datos inválidos");
     }
 
-    // 🔒 Validaciones de contenido
+    //  Validaciones de contenido
     if (!data.email.includes("@")) {
       throw new Error("Email inválido");
     }
@@ -51,14 +50,14 @@ export class RegisterUserUseCase {
       username: data.username,
       role: "USER"
     })
-    
+
     return {
-       id: user.id,
-  email: user.email,
-  username: user.username,
-  role: user.role,
-  createdAt: user.createdAt,
-  updatedAt: user.updatedAt
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      role: user.role,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt
     }
   }
 }
