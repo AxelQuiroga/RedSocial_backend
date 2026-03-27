@@ -16,5 +16,9 @@ router.post(
   authMiddleware, // PROTEGIDO
   (req, res) => createPostController.handle(req, res)
 );
+router.get(
+  "/", // PROTEGIDO
+  (req, res) => createPostController.getAll(req, res)
+);
 
 export default router;

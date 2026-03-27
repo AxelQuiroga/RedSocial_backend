@@ -12,4 +12,11 @@ export class PrismaPostRepository implements PostRepository {
       data
     });
   }
+  async findAll() {
+  return prisma.post.findMany({
+    include: {
+      author: true
+    }
+  });
+}
 }
