@@ -26,5 +26,8 @@ router.get("/posts/me", authMiddleware, (req, res) =>
 router.delete("/posts/:id", authMiddleware, (req, res) =>
   createPostController.delete(req, res)
 );
+router.put("/posts/:id", authMiddleware, (req, res) =>
+  createPostController.update(req, res)
+);
 
 export default router;

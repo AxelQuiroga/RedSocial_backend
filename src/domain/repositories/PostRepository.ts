@@ -13,6 +13,8 @@ export interface PostRepository {
 
   findByAuthorId(authorId: string): Promise<PostWithAuthor[]>;
 
-  findById(id: string): Promise<Post | null>;   //  nuevo
-  deleteById(id: string): Promise<void>;        //  nuevo
+  findById(id: string): Promise<Post | null>;  
+  deleteById(id: string): Promise<void>;        
+
+  update(id: string, data: { title?: string; content?: string }): Promise<Post | null>; 
 }

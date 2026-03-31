@@ -55,4 +55,10 @@ export class PrismaPostRepository implements PostRepository {
   });
   }
 
+  async update(id: string, data: { title?: string; content?: string }) {
+    return prisma.post.update({
+      where: { id },
+      data
+    });
+  }
 }

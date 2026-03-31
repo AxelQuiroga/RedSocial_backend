@@ -4,6 +4,7 @@ import { PrismaPostRepository } from "../../../infrastructure/repositories/Prism
 import { GetPostsUseCase } from "../../../application/use-cases/post/GetPostsUseCase.js";
 import { GetMyPostsUseCase } from "../../../application/use-cases/post/GetMyPostsUseCase.js";
 import { DeletePostUseCase } from "../../../application/use-cases/post/DeletePostUseCase.js";
+import { UpdatePostUseCase } from "../../../application/use-cases/post/UpdatePostUseCase.js";
 
 export class CreatePostController {
   constructor(private createPostUseCase: CreatePostUseCase) { }
@@ -25,32 +26,33 @@ export class CreatePostController {
       });
     }
   }
+
   async getAll(req: Request, res: Response) {
-  try {
-    // Extraer y validar query params
-    const page = Math.max(1, parseInt(req.query.page as string) || 1);
-    const limit = Math.min(50, parseInt(req.query.limit as string) || 10);
-    
-    const postRepo = new PrismaPostRepository();
-    const useCase = new GetPostsUseCase(postRepo);
-    
-    const { posts, total } = await useCase.execute(page, limit);
-    
-    return res.json({
-      data: posts,
-      meta: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit)
-      }
-    });
-  } catch (error: any) {
-    return res.status(500).json({
-      error: error.message || "Error obteniendo posts"
-    });
+    try {
+      // Extraer y validar query params
+      const page = Math.max(1, parseInt(req.query.page as string) || 1);
+      const limit = Math.min(50, parseInt(req.query.limit as string) || 10);
+      
+      const postRepo = new PrismaPostRepository();
+      const useCase = new GetPostsUseCase(postRepo);
+      
+      const { posts, total } = await useCase.execute(page, limit);
+      
+      return res.json({
+        data: posts,
+        meta: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit)
+        }
+      });
+    } catch (error: any) {
+      return res.status(500).json({
+        error: error.message || "Error obteniendo posts"
+      });
+    }
   }
-}
 
   async getMyPosts(req: Request, res: Response) {
     try {
@@ -91,6 +93,32 @@ export class CreatePostController {
       await deleteUseCase.execute(postId, userId);
 
       return res.status(204).send(); // 204 = No Content (éxito sin body)
+    } catch (error: any) {
+      const status = error.message === "Post no encontrado" ? 404 :
+        error.message === "No autorizado" ? 403 : 500;
+      return res.status(status).json({ error: error.message });
+    }
+  }
+
+  async update(req: Request, res: Response) {
+    try {
+      const userId = req.user?.userId;
+      const postId = req.params.id;
+      const data = req.body;
+
+      if (!userId) {
+        return res.status(401).json({ error: "No autorizado" });
+      }
+
+      if (!postId || Array.isArray(postId)) {
+        return res.status(400).json({ error: "ID inválido" });
+      }
+
+      const postRepo = new PrismaPostRepository();
+      const updateUseCase = new UpdatePostUseCase(postRepo);
+      const post = await updateUseCase.execute(postId, userId, data);
+
+      return res.json(post);
     } catch (error: any) {
       const status = error.message === "Post no encontrado" ? 404 :
         error.message === "No autorizado" ? 403 : 500;
