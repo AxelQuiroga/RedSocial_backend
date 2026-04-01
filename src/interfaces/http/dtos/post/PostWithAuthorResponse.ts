@@ -1,9 +1,8 @@
-export interface PostWithAuthorDTO {
+export interface PostWithAuthorResponse {
   id: string;
   title: string;
   content: string;
   createdAt: Date;
-
   author: {
     id: string;
     username: string;

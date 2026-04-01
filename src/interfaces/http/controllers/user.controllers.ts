@@ -4,14 +4,25 @@ import { LoginUserUseCase } from "../../../application/use-cases/user/LoginUserU
 import { PrismaUserRepository } from "../../../infrastructure/repositories/PrismaUserRepository.js";
 import { GetMyProfileUseCase } from "../../../application/use-cases/user/GetMyProfileUseCase.js";
 import { UpdateUserProfileUseCase } from "../../../application/use-cases/user/UpdateUserProfileUseCase.js";
+import type { LoginRequest } from "../dtos/user/LoginRequest.js";
+import type { RegisterUserRequest } from "../dtos/user/RegisterUserRequest.js";
+import type { UpdateUserRequest } from "../dtos/user/UpdateUserRequest.js";
+import {
+  toLoginInput,
+  toLoginResponse,
+  toRegisterUserInput,
+  toUpdateUserInput,
+  toUserResponse
+} from "../mappers/user.mapper.js";
 export class UserController {
   async register(req: Request, res: Response) {
     try {
       const userRepo = new PrismaUserRepository();
       const useCase = new RegisterUserUseCase(userRepo);
-      const user = await useCase.execute(req.body);
+      const input = toRegisterUserInput(req.body as RegisterUserRequest);
+      const user = await useCase.execute(input);
 
-      res.status(201).json(user);
+      res.status(201).json(toUserResponse(user));
     } catch (error: any) {
       res.status(400).json({ message: error.message });
     }
@@ -22,9 +33,10 @@ export class UserController {
       const userRepo = new PrismaUserRepository();
       const useCase = new LoginUserUseCase(userRepo);
 
-      const result = await useCase.execute(req.body);
+      const input = toLoginInput(req.body as LoginRequest);
+      const result = await useCase.execute(input);
 
-      res.json(result);
+      res.json(toLoginResponse(result));
     } catch (error: any) {
       res.status(400).json({ message: error.message });
     }
@@ -39,7 +51,7 @@ export class UserController {
 
     const user = await useCase.execute(userId);
 
-    res.json(user);
+    res.json(toUserResponse(user));
   } catch (error: any) {
     res.status(400).json({ message: error.message });
   }
@@ -55,9 +67,10 @@ async update(req: Request, res: Response) {
 
     const userId = (req as any).user.userId;
 
-    const updatedUser = await useCase.execute(userId, req.body);
+    const input = toUpdateUserInput(req.body as UpdateUserRequest);
+    const updatedUser = await useCase.execute(userId, input);
 
-    res.json(updatedUser);
+    res.json(toUserResponse(updatedUser));
   } catch (error: any) {
     res.status(400).json({ message: error.message });
   }

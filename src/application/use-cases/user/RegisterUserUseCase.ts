@@ -1,12 +1,12 @@
-import type { RegisterUserDTO } from "../../dtos/RegisterUserDTO.js";
+import type { RegisterUserInput } from "../../contracts/user/RegisterUserInput.js";
 import type { UserRepository } from "../../../domain/repositories/UserRepository.js";
 import bcrypt from "bcrypt";
-import type { UserResponseDTO } from "../../dtos/UserResponseDTO.js";
+import type { UserOutput } from "../../contracts/user/UserOutput.js";
 
 export class RegisterUserUseCase {
   constructor(private userRepository: UserRepository) { }
 
-  async execute(data: RegisterUserDTO): Promise<UserResponseDTO> {
+  async execute(data: RegisterUserInput): Promise<UserOutput> {
 
     //  Validar existencia de campos
     if (!data.email || !data.password || !data.username) {

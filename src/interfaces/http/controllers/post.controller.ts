@@ -5,6 +5,15 @@ import { GetPostsUseCase } from "../../../application/use-cases/post/GetPostsUse
 import { GetMyPostsUseCase } from "../../../application/use-cases/post/GetMyPostsUseCase.js";
 import { DeletePostUseCase } from "../../../application/use-cases/post/DeletePostUseCase.js";
 import { UpdatePostUseCase } from "../../../application/use-cases/post/UpdatePostUseCase.js";
+import type { CreatePostRequest } from "../dtos/post/CreatePostRequest.js";
+import type { UpdatePostRequest } from "../dtos/post/UpdatePostRequest.js";
+import type { GetPostsResponse } from "../dtos/post/GetPostsResponse.js";
+import {
+  toCreatePostInput,
+  toPostResponse,
+  toPostWithAuthorResponse,
+  toUpdatePostInput
+} from "../mappers/post.mapper.js";
 
 export class CreatePostController {
   constructor(private createPostUseCase: CreatePostUseCase) { }
@@ -17,9 +26,10 @@ export class CreatePostController {
         return res.status(401).json({ error: "No autorizado" });
       }
 
-      const post = await this.createPostUseCase.execute(userId, req.body);
+      const input = toCreatePostInput(req.body as CreatePostRequest);
+      const post = await this.createPostUseCase.execute(userId, input);
 
-      return res.status(201).json(post);
+      return res.status(201).json(toPostResponse(post));
     } catch (error: any) {
       return res.status(400).json({
         error: error.message || "Error creando post"
@@ -37,16 +47,17 @@ export class CreatePostController {
       const useCase = new GetPostsUseCase(postRepo);
       
       const { posts, total } = await useCase.execute(page, limit);
-      
-      return res.json({
-        data: posts,
+      const response: GetPostsResponse = {
+        data: posts.map(toPostWithAuthorResponse),
         meta: {
           page,
           limit,
           total,
           totalPages: Math.ceil(total / limit)
         }
-      });
+      };
+
+      return res.json(response);
     } catch (error: any) {
       return res.status(500).json({
         error: error.message || "Error obteniendo posts"
@@ -67,7 +78,7 @@ export class CreatePostController {
 
       const posts = await useCase.execute(userId);
 
-      return res.json(posts);
+      return res.json(posts.map(toPostWithAuthorResponse));
     } catch (error: any) {
       return res.status(500).json({
         message: error.message || "Error obteniendo posts"
@@ -104,7 +115,7 @@ export class CreatePostController {
     try {
       const userId = req.user?.userId;
       const postId = req.params.id;
-      const data = req.body;
+      const data = toUpdatePostInput(req.body as UpdatePostRequest);
 
       if (!userId) {
         return res.status(401).json({ error: "No autorizado" });
@@ -118,7 +129,7 @@ export class CreatePostController {
       const updateUseCase = new UpdatePostUseCase(postRepo);
       const post = await updateUseCase.execute(postId, userId, data);
 
-      return res.json(post);
+      return res.json(toPostResponse(post));
     } catch (error: any) {
       const status = error.message === "Post no encontrado" ? 404 :
         error.message === "No autorizado" ? 403 : 500;

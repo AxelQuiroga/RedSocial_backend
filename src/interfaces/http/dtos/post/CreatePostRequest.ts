@@ -1,4 +1,4 @@
-export interface CreatePostDTO {
+export interface CreatePostRequest {
   title: string;
   content: string;
 }

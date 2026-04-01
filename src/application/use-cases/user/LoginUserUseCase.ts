@@ -1,17 +1,14 @@
 import type { UserRepository } from "../../../domain/repositories/UserRepository.js";
-import type { LoginUserDTO } from "../../dtos/LoginUserDTO.js";
+import type { LoginInput } from "../../contracts/user/LoginInput.js";
+import type { LoginOutput } from "../../contracts/user/LoginOutput.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { env } from "../../../config/env.js";
 
-type LoginResponse = {
-  token: string;
-};
-
 export class LoginUserUseCase {
   constructor(private userRepository: UserRepository) { }
 
-  async execute(data: LoginUserDTO): Promise<LoginResponse> {
+  async execute(data: LoginInput): Promise<LoginOutput> {
 
     //  Validaciones
     if (!data.email || !data.email.includes("@")) {

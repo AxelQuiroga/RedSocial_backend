@@ -4,16 +4,14 @@ import { logger } from "./middlewares/logger.middleware.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
 import postRoutes from "./interfaces/http/routes/post.routes.js";
 import cors from "cors";
-import dotenv from "dotenv";
+import { env } from "./config/env.js"; 
 
-dotenv.config();
+
 
 const app = express();
 
-const FRONTEND_URL = process.env.FRONTEND_URL;
-
 app.use(cors({
-  origin: FRONTEND_URL,
+  origin: env.FRONTEND_URL,
   credentials: true,  
 }));
  

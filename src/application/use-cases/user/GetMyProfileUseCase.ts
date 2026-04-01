@@ -1,10 +1,10 @@
 import type { UserRepository } from "../../../domain/repositories/UserRepository.js";
-import type { UserResponseDTO } from "../../dtos/UserResponseDTO.js";
+import type { UserOutput } from "../../contracts/user/UserOutput.js";
 
 export class GetMyProfileUseCase {
   constructor(private userRepository: UserRepository) {}
 
-  async execute(userId: string): Promise<UserResponseDTO> {
+  async execute(userId: string): Promise<UserOutput> {
     
     const user = await this.userRepository.findById(userId);
 

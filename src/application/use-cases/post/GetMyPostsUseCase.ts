@@ -1,10 +1,10 @@
 import type { PostRepository } from "../../../domain/repositories/PostRepository.js";
-import type { PostWithAuthorDTO } from "../../dtos/PostWithAuthorDTO.js";
+import type { PostWithAuthorOutput } from "../../contracts/post/PostWithAuthorOutput.js";
 
 export class GetMyPostsUseCase {
   constructor(private postRepository: PostRepository) {}
 
-  async execute(userId: string): Promise<PostWithAuthorDTO[]> {
+  async execute(userId: string): Promise<PostWithAuthorOutput[]> {
     
     if (!userId) {
       throw new Error("Usuario no autenticado");

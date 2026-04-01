@@ -1,6 +1,6 @@
 import type { PostRepository } from "../../../domain/repositories/PostRepository.js";
-import type { Post } from "../../../domain/entities/Post.js";
-import type { UpdatePostDTO } from "../../dtos/UpdatePostDTO.js";
+import type { UpdatePostInput } from "../../contracts/post/UpdatePostInput.js";
+import type { PostOutput } from "../../contracts/post/PostOutput.js";
 
 export class UpdatePostUseCase {
   constructor(private postRepository: PostRepository) {}
@@ -8,8 +8,8 @@ export class UpdatePostUseCase {
   async execute(
     postId: string,
     userId: string,
-    data: UpdatePostDTO
-  ): Promise<Post> {
+    data: UpdatePostInput
+  ): Promise<PostOutput> {
     // 1. Buscar post
     const post = await this.postRepository.findById(postId);
     if (!post) {
@@ -32,6 +32,13 @@ export class UpdatePostUseCase {
       throw new Error("Error al actualizar el post");
     }
 
-    return updatedPost;
+    return {
+      id: updatedPost.id,
+      title: updatedPost.title,
+      content: updatedPost.content,
+      authorId: updatedPost.authorId,
+      createdAt: updatedPost.createdAt,
+      updatedAt: updatedPost.updatedAt
+    };
   }
 }

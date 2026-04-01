@@ -1,14 +1,14 @@
 import type { PostRepository } from "../../../domain/repositories/PostRepository.js";
-import type { CreatePostDTO } from "../../dtos/CreatePostDTO.js";
-import type { PostResponseDTO } from "../../dtos/PostResponseDTO.js";
+import type { CreatePostInput } from "../../contracts/post/CreatePostInput.js";
+import type { PostOutput } from "../../contracts/post/PostOutput.js";
 
 export class CreatePostUseCase {
   constructor(private postRepository: PostRepository) {}
 
   async execute(
     userId: string,
-    data: CreatePostDTO
-  ): Promise<PostResponseDTO> {
+    data: CreatePostInput
+  ): Promise<PostOutput> {
 
     // Validar existencia
     if (!data.title || !data.content) {

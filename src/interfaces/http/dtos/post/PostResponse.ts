@@ -1,4 +1,4 @@
-export interface PostResponseDTO {
+export interface PostResponse {
   id: string;
   title: string;
   content: string;

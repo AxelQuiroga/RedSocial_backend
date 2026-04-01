@@ -1,11 +1,11 @@
 import type { UserRepository } from "../../../domain/repositories/UserRepository.js";
-import type { UpdateUserDTO } from "../../dtos/UpdateUserDTO.js";
-import type { UserResponseDTO } from "../../dtos/UserResponseDTO.js";
+import type { UpdateUserInput } from "../../contracts/user/UpdateUserInput.js";
+import type { UserOutput } from "../../contracts/user/UserOutput.js";
 
 export class UpdateUserProfileUseCase {
   constructor(private userRepository: UserRepository) {}
 
-  async execute(userId: string, data: UpdateUserDTO): Promise<UserResponseDTO> {
+  async execute(userId: string, data: UpdateUserInput): Promise<UserOutput> {
 
     //  Validar que venga algo
     if (!data.email && !data.username) {
