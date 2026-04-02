@@ -1,6 +1,5 @@
 import type { Request, Response } from "express";
 import { CreatePostUseCase } from "../../../application/use-cases/post/CreatePostUseCase.js";
-import { PrismaPostRepository } from "../../../infrastructure/repositories/PrismaPostRepository.js";
 import { GetPostsUseCase } from "../../../application/use-cases/post/GetPostsUseCase.js";
 import { GetMyPostsUseCase } from "../../../application/use-cases/post/GetMyPostsUseCase.js";
 import { DeletePostUseCase } from "../../../application/use-cases/post/DeletePostUseCase.js";
@@ -15,8 +14,14 @@ import {
   toUpdatePostInput
 } from "../mappers/post.mapper.js";
 
-export class CreatePostController {
-  constructor(private createPostUseCase: CreatePostUseCase) { }
+export class PostController {
+  constructor(
+    private createPostUseCase: CreatePostUseCase,
+    private getPostsUseCase: GetPostsUseCase,
+    private getMyPostsUseCase: GetMyPostsUseCase,
+    private deletePostUseCase: DeletePostUseCase,
+    private updatePostUseCase: UpdatePostUseCase
+  ) {}
 
   async handle(req: Request, res: Response): Promise<Response> {
     try {
@@ -43,10 +48,7 @@ export class CreatePostController {
       const page = Math.max(1, parseInt(req.query.page as string) || 1);
       const limit = Math.min(50, parseInt(req.query.limit as string) || 10);
       
-      const postRepo = new PrismaPostRepository();
-      const useCase = new GetPostsUseCase(postRepo);
-      
-      const { posts, total } = await useCase.execute(page, limit);
+      const { posts, total } = await this.getPostsUseCase.execute(page, limit);
       const response: GetPostsResponse = {
         data: posts.map(toPostWithAuthorResponse),
         meta: {
@@ -73,10 +75,7 @@ export class CreatePostController {
         return res.status(401).json({ message: "No autorizado" });
       }
 
-      const postRepo = new PrismaPostRepository();
-      const useCase = new GetMyPostsUseCase(postRepo);
-
-      const posts = await useCase.execute(userId);
+      const posts = await this.getMyPostsUseCase.execute(userId);
 
       return res.json(posts.map(toPostWithAuthorResponse));
     } catch (error: any) {
@@ -99,9 +98,7 @@ export class CreatePostController {
         return res.status(400).json({ error: "ID inválido" });
       }
 
-      const postRepo = new PrismaPostRepository();
-      const deleteUseCase = new DeletePostUseCase(postRepo); // o crear en constructor
-      await deleteUseCase.execute(postId, userId);
+      await this.deletePostUseCase.execute(postId, userId);
 
       return res.status(204).send(); // 204 = No Content (éxito sin body)
     } catch (error: any) {
@@ -125,9 +122,7 @@ export class CreatePostController {
         return res.status(400).json({ error: "ID inválido" });
       }
 
-      const postRepo = new PrismaPostRepository();
-      const updateUseCase = new UpdatePostUseCase(postRepo);
-      const post = await updateUseCase.execute(postId, userId, data);
+      const post = await this.updatePostUseCase.execute(postId, userId, data);
 
       return res.json(toPostResponse(post));
     } catch (error: any) {

@@ -2,32 +2,57 @@ import { Router } from "express";
 import { authMiddleware } from "../../../middlewares/auth.middleware.js";
 import { PrismaPostRepository } from "../../../infrastructure/repositories/PrismaPostRepository.js";
 import { CreatePostUseCase } from "../../../application/use-cases/post/CreatePostUseCase.js";
-import { CreatePostController } from "../controllers/post.controller.js";
+import { GetPostsUseCase } from "../../../application/use-cases/post/GetPostsUseCase.js";
+import { GetMyPostsUseCase } from "../../../application/use-cases/post/GetMyPostsUseCase.js";
+import { DeletePostUseCase } from "../../../application/use-cases/post/DeletePostUseCase.js";
+import { UpdatePostUseCase } from "../../../application/use-cases/post/UpdatePostUseCase.js";
+import { PostController } from "../controllers/post.controller.js";
+import { validate } from "../../../middlewares/validate.middleware.js";
+import {
+  createPostSchema,
+  getPostsSchema,
+  updatePostSchema,
+  deletePostSchema
+} from "../validators/post.validator.js";
 
 const router = Router();
 
 // dependencias manuales (sin DI framework)
 const postRepository = new PrismaPostRepository();
-const createPostUseCase = new CreatePostUseCase(postRepository);
-const createPostController = new CreatePostController(createPostUseCase);
 
-router.post(
-  "/new",
-  authMiddleware, // PROTEGIDO
-  (req, res) => createPostController.handle(req, res)
+const createPostUseCase = new CreatePostUseCase(postRepository);
+const getPostsUseCase = new GetPostsUseCase(postRepository);
+const getMyPostsUseCase = new GetMyPostsUseCase(postRepository);
+const deletePostUseCase = new DeletePostUseCase(postRepository);
+const updatePostUseCase = new UpdatePostUseCase(postRepository);
+
+const postController = new PostController(
+  createPostUseCase,
+  getPostsUseCase,
+  getMyPostsUseCase,
+  deletePostUseCase,
+  updatePostUseCase
 );
-router.get(
-  "/", // PROTEGIDO
-  (req, res) => createPostController.getAll(req, res)
+
+router.post("/new", authMiddleware, validate(createPostSchema), (req, res) =>
+  postController.handle(req, res)
 );
+
+router.get("/", validate(getPostsSchema), (req, res) =>
+  postController.getAll(req, res)
+);
+
 router.get("/posts/me", authMiddleware, (req, res) =>
-  createPostController.getMyPosts(req, res)
+  postController.getMyPosts(req, res)
 );
-router.delete("/posts/:id", authMiddleware, (req, res) =>
-  createPostController.delete(req, res)
+
+router.put("/posts/:id", authMiddleware, validate(updatePostSchema), (req, res) =>
+  postController.update(req, res)
 );
-router.put("/posts/:id", authMiddleware, (req, res) =>
-  createPostController.update(req, res)
+
+router.delete("/posts/:id", authMiddleware, validate(deletePostSchema), (req, res) =>
+  postController.delete(req, res)
 );
+
 
 export default router;

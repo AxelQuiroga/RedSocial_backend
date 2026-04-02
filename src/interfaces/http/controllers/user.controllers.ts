@@ -1,7 +1,6 @@
 import type { Request, Response } from "express";
 import { RegisterUserUseCase } from "../../../application/use-cases/user/RegisterUserUseCase.js";
 import { LoginUserUseCase } from "../../../application/use-cases/user/LoginUserUseCase.js";
-import { PrismaUserRepository } from "../../../infrastructure/repositories/PrismaUserRepository.js";
 import { GetMyProfileUseCase } from "../../../application/use-cases/user/GetMyProfileUseCase.js";
 import { UpdateUserProfileUseCase } from "../../../application/use-cases/user/UpdateUserProfileUseCase.js";
 import type { LoginRequest } from "../dtos/user/LoginRequest.js";
@@ -15,12 +14,17 @@ import {
   toUserResponse
 } from "../mappers/user.mapper.js";
 export class UserController {
+  constructor(
+    private registerUserUseCase: RegisterUserUseCase,
+    private loginUserUseCase: LoginUserUseCase,
+    private getMyProfileUseCase: GetMyProfileUseCase,
+    private updateUserProfileUseCase: UpdateUserProfileUseCase
+  ) { }
   async register(req: Request, res: Response) {
     try {
-      const userRepo = new PrismaUserRepository();
-      const useCase = new RegisterUserUseCase(userRepo);
+
       const input = toRegisterUserInput(req.body as RegisterUserRequest);
-      const user = await useCase.execute(input);
+      const user = await this.registerUserUseCase.execute(input);
 
       res.status(201).json(toUserResponse(user));
     } catch (error: any) {
@@ -28,13 +32,11 @@ export class UserController {
     }
   }
 
-   async login(req: Request, res: Response) {
+  async login(req: Request, res: Response) {
     try {
-      const userRepo = new PrismaUserRepository();
-      const useCase = new LoginUserUseCase(userRepo);
 
       const input = toLoginInput(req.body as LoginRequest);
-      const result = await useCase.execute(input);
+      const result = await this.loginUserUseCase.execute(input);
 
       res.json(toLoginResponse(result));
     } catch (error: any) {
@@ -43,36 +45,29 @@ export class UserController {
   }
 
   async me(req: Request, res: Response) {
-  try {
-    const userRepo = new PrismaUserRepository();
-    const useCase = new GetMyProfileUseCase(userRepo);
+    try {
 
-    const userId = (req as any).user.userId;
+      const userId = (req as any).user.userId;
 
-    const user = await useCase.execute(userId);
+      const user = await this.getMyProfileUseCase.execute(userId);
 
-    res.json(toUserResponse(user));
-  } catch (error: any) {
-    res.status(400).json({ message: error.message });
+      res.json(toUserResponse(user));
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
   }
-}
 
+  async update(req: Request, res: Response) {
+    try {
 
+      const userId = (req as any).user.userId;
 
+      const input = toUpdateUserInput(req.body as UpdateUserRequest);
+      const updatedUser = await this.updateUserProfileUseCase.execute(userId, input);
 
-async update(req: Request, res: Response) {
-  try {
-    const userRepo = new PrismaUserRepository();
-    const useCase = new UpdateUserProfileUseCase(userRepo);
-
-    const userId = (req as any).user.userId;
-
-    const input = toUpdateUserInput(req.body as UpdateUserRequest);
-    const updatedUser = await useCase.execute(userId, input);
-
-    res.json(toUserResponse(updatedUser));
-  } catch (error: any) {
-    res.status(400).json({ message: error.message });
+      res.json(toUserResponse(updatedUser));
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
   }
-}
 }
