@@ -4,9 +4,9 @@ import type {  ZodError } from "zod";
 import { z } from "zod"; // Import the Zod library
 
 type Schemas = {
-  body?: z.ZodType<any, any, any>; // Use Zod.Any instead of ZodTypeAny
-  params?: z.ZodType<any, any, any>; // Use Zod.Any instead of ZodTypeAny
-  query?: z.ZodType<any, any, any>; // Use Zod.Any instead of ZodTypeAny
+  body?: z.ZodType<any, any, any>; 
+  params?: z.ZodType<any, any, any>; 
+  query?: z.ZodType<any, any, any>; 
 };
 
 type ValidationDetail = {
@@ -27,22 +27,28 @@ export function validate(schemas: Schemas) {
   return (req: Request, res: Response, next: NextFunction) => {
     const details: ValidationDetail[] = [];
 
+    const validated: {
+      body?: unknown;
+      params?: unknown;
+      query?: unknown;
+    } = {};
+
     if (schemas.body) {
       const result = schemas.body.safeParse(req.body);
       if (!result.success) details.push(...formatIssues("body", result.error));
-      else req.body = result.data;
+      else validated.body = result.data;
     }
 
     if (schemas.params) {
       const result = schemas.params.safeParse(req.params);
       if (!result.success) details.push(...formatIssues("params", result.error));
-      else req.params = result.data;
+      else validated.params = result.data;
     }
 
     if (schemas.query) {
       const result = schemas.query.safeParse(req.query);
       if (!result.success) details.push(...formatIssues("query", result.error));
-      else req.query = result.data;
+      else validated.query = result.data;
     }
 
     if (details.length > 0) {
@@ -51,6 +57,8 @@ export function validate(schemas: Schemas) {
         details
       });
     }
+
+    res.locals.validated = validated;
 
     return next();
   };

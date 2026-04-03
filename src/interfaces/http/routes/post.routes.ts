@@ -42,15 +42,15 @@ router.get("/", validate(getPostsSchema), (req, res) =>
   postController.getAll(req, res)
 );
 
-router.get("/posts/me", authMiddleware, (req, res) =>
+router.get("/me", authMiddleware, (req, res) =>
   postController.getMyPosts(req, res)
 );
 
-router.put("/posts/:id", authMiddleware, validate(updatePostSchema), (req, res) =>
+router.put("/:id", authMiddleware, validate(updatePostSchema), (req, res) =>
   postController.update(req, res)
 );
 
-router.delete("/posts/:id", authMiddleware, validate(deletePostSchema), (req, res) =>
+router.delete("/:id", authMiddleware, validate(deletePostSchema), (req, res) =>
   postController.delete(req, res)
 );
 

@@ -23,7 +23,10 @@ export class UserController {
   async register(req: Request, res: Response) {
     try {
 
-      const input = toRegisterUserInput(req.body as RegisterUserRequest);
+      const input = toRegisterUserInput(
+        res.locals.validated.body as RegisterUserRequest
+      );
+
       const user = await this.registerUserUseCase.execute(input);
 
       res.status(201).json(toUserResponse(user));
@@ -35,7 +38,10 @@ export class UserController {
   async login(req: Request, res: Response) {
     try {
 
-      const input = toLoginInput(req.body as LoginRequest);
+      const input = toLoginInput(
+        res.locals.validated.body as LoginRequest
+      );
+
       const result = await this.loginUserUseCase.execute(input);
 
       res.json(toLoginResponse(result));
@@ -62,7 +68,10 @@ export class UserController {
 
       const userId = (req as any).user.userId;
 
-      const input = toUpdateUserInput(req.body as UpdateUserRequest);
+      const input = toUpdateUserInput(
+        res.locals.validated.body as UpdateUserRequest
+      );
+
       const updatedUser = await this.updateUserProfileUseCase.execute(userId, input);
 
       res.json(toUserResponse(updatedUser));

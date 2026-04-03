@@ -21,7 +21,7 @@ export class PostController {
     private getMyPostsUseCase: GetMyPostsUseCase,
     private deletePostUseCase: DeletePostUseCase,
     private updatePostUseCase: UpdatePostUseCase
-  ) {}
+  ) { }
 
   async handle(req: Request, res: Response): Promise<Response> {
     try {
@@ -31,7 +31,8 @@ export class PostController {
         return res.status(401).json({ error: "No autorizado" });
       }
 
-      const input = toCreatePostInput(req.body as CreatePostRequest);
+      const input = toCreatePostInput(res.locals.validated.body as CreatePostRequest);
+
       const post = await this.createPostUseCase.execute(userId, input);
 
       return res.status(201).json(toPostResponse(post));
@@ -45,9 +46,8 @@ export class PostController {
   async getAll(req: Request, res: Response) {
     try {
       // Extraer y validar query params
-      const page = Math.max(1, parseInt(req.query.page as string) || 1);
-      const limit = Math.min(50, parseInt(req.query.limit as string) || 10);
-      
+      const { page, limit } = res.locals.validated.query as { page: number; limit: number };
+
       const { posts, total } = await this.getPostsUseCase.execute(page, limit);
       const response: GetPostsResponse = {
         data: posts.map(toPostWithAuthorResponse),
@@ -88,14 +88,11 @@ export class PostController {
   async delete(req: Request, res: Response) {
     try {
       const userId = req.user?.userId;
-      const postId = req.params.id;
+      const { id: postId } = res.locals.validated.params as { id: string };
+
 
       if (!userId) {
         return res.status(401).json({ error: "No autorizado" });
-      }
-
-      if (!postId || Array.isArray(postId)) {
-        return res.status(400).json({ error: "ID inválido" });
       }
 
       await this.deletePostUseCase.execute(postId, userId);
@@ -111,15 +108,15 @@ export class PostController {
   async update(req: Request, res: Response) {
     try {
       const userId = req.user?.userId;
-      const postId = req.params.id;
-      const data = toUpdatePostInput(req.body as UpdatePostRequest);
+
+      const { id: postId } = res.locals.validated.params as { id: string };
+      const data = toUpdatePostInput(
+        res.locals.validated.body as UpdatePostRequest
+      );
+
 
       if (!userId) {
         return res.status(401).json({ error: "No autorizado" });
-      }
-
-      if (!postId || Array.isArray(postId)) {
-        return res.status(400).json({ error: "ID inválido" });
       }
 
       const post = await this.updatePostUseCase.execute(postId, userId, data);
