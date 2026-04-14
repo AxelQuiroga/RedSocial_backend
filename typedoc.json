@@ -1,0 +1,15 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "name": "Red Social Backend API",
+  "entryPoints": ["src/application", "src/domain"],
+  "entryPointStrategy": "expand",
+  "out": "docs",
+  "includeVersion": true,
+  "sort": ["source-order"],
+  "kindSortOrder": ["Function", "Class", "Interface"],
+  "categorizeByGroup": true,
+  "defaultCategory": "Otros",
+  "categoryOrder": ["Contratos", "Use Cases", "Repositories", "*"],
+  "readme": "README.md",
+  "exclude": ["**/node_modules/**", "**/dist/**", "**/*.test.ts", "**/infrastructure/**", "**/interfaces/**"]
+}

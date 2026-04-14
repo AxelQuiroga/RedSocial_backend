@@ -18,6 +18,7 @@ model User {
   username  String   @unique
   role      Role     @default(USER)
   posts     Post[]
+  likes     Like[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -28,9 +29,30 @@ model Post {
   content   String
   author    User     @relation(fields: [authorId], references: [id])
   authorId  String
+  likes     Like[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model Like {
+  id        String   @id @default(uuid())
+  
+  // Quién dio el like
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  
+  // A qué post
+  post      Post     @relation(fields: [postId], references: [id])
+  postId    String
+  
+  createdAt DateTime @default(now())
+ 
+  // Un usuario solo puede dar like una vez a un post
+  @@unique([userId, postId])
+  // Índice para buscar rápido likes de un post
+  @@index([postId])
+}
+
 
 enum Role {
   USER

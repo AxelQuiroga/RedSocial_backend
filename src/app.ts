@@ -3,6 +3,7 @@ import userRoutes from "./interfaces/http/routes/user.routes.js";
 import { logger } from "./middlewares/logger.middleware.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
 import postRoutes from "./interfaces/http/routes/post.routes.js";
+import likeRoutes from "./interfaces/http/routes/like.routes.js";
 import cors from "cors";
 import { env } from "./config/env.js"; 
 
@@ -22,6 +23,7 @@ app.use(logger);
 
 app.use("/users", userRoutes);
 app.use("/posts", postRoutes);
+app.use("/posts", likeRoutes); // Rutas de likes (POST /:id/like, DELETE /:id/like, GET /:id/likes)
 // SIEMPRE al final
 app.use(errorHandler);
 
