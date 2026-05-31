@@ -15,27 +15,26 @@ export class GetMyPostsUseCase {
 
     const posts = await this.postRepository.findByAuthorId(userId);
 
-    // Enriquecer cada post con info de likes
-    const postsWithLikes = await Promise.all(
-      posts.map(async (post) => {
-        const likesCount = await this.likeRepository.countByPostId(post.id);
-        const userHasLiked = await this.likeRepository.exists(userId, post.id);
+    // Batch queries: 2 queries en vez de N*2
+    const postIds = posts.map(p => p.id);
 
-        return {
-          id: post.id,
-          title: post.title,
-          content: post.content,
-          createdAt: post.createdAt,
-          likesCount,
-          userHasLiked,
-          author: {
-            id: post.author.id,
-            username: post.author.username
-          }
-        };
-      })
-    );
+    const [likesCountMap, userLikedMap] = await Promise.all([
+      this.likeRepository.countByPostIdsBatch(postIds),
+      this.likeRepository.existsBatch(userId, postIds)
+    ]);
 
-    return postsWithLikes;
+    // Mapear resultados (sin async, sin queries)
+    return posts.map((post) => ({
+      id: post.id,
+      title: post.title,
+      content: post.content,
+      createdAt: post.createdAt,
+      likesCount: likesCountMap.get(post.id) ?? 0,
+      userHasLiked: userLikedMap.get(post.id) ?? false,
+      author: {
+        id: post.author.id,
+        username: post.author.username
+      }
+    }));
   }
 }

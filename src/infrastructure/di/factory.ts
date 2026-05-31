@@ -66,7 +66,7 @@ export function createCreatePostUseCase(): CreatePostUseCase {
 }
 
 export function createGetPostsUseCase(): GetPostsUseCase {
-  return new GetPostsUseCase(createPostRepository(), createGetPostLikesCountUseCase());
+  return new GetPostsUseCase(createPostRepository(), createLikeRepository());
 }
 
 export function createGetMyPostsUseCase(): GetMyPostsUseCase {

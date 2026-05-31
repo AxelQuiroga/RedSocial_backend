@@ -1,11 +1,11 @@
 import type { PostRepository } from "../../../domain/repositories/PostRepository.js";
+import type { LikeRepository } from "../../../domain/repositories/LikeRepository.js";
 import type { PostWithAuthorOutput } from "../../contracts/post/PostWithAuthorOutput.js";
-import { GetPostLikesCountUseCase } from "../like/GetPostLikesCountUseCase.js";
 
 export class GetPostsUseCase {
   constructor(
     private postRepository: PostRepository,
-    private getPostLikesCountUseCase: GetPostLikesCountUseCase
+    private likeRepository: LikeRepository
   ) {}
 
   async execute(
@@ -15,28 +15,29 @@ export class GetPostsUseCase {
   ): Promise<{ posts: PostWithAuthorOutput[]; total: number }> {
     const { posts, total } = await this.postRepository.findAll(page, limit);
 
-    // Obtener likes info para cada post
-    const postsWithLikes = await Promise.all(
-      posts.map(async (post) => {
-        const likesInfo = await this.getPostLikesCountUseCase.execute(
-          post.id,
-          userId
-        );
+    // Batch queries: 2 queries en vez de N*2
+    const postIds = posts.map(p => p.id);
 
-        return {
-          id: post.id,
-          title: post.title,
-          content: post.content,
-          createdAt: post.createdAt,
-          author: {
-            id: post.author.id,
-            username: post.author.username
-          },
-          likesCount: likesInfo.count,
-          userHasLiked: likesInfo.userHasLiked
-        };
-      })
-    );
+    const [likesCountMap, userLikedMap] = await Promise.all([
+      this.likeRepository.countByPostIdsBatch(postIds),
+      userId
+        ? this.likeRepository.existsBatch(userId, postIds)
+        : Promise.resolve(new Map<string, boolean>())
+    ]);
+
+    // Mapear resultados (sin async, sin queries)
+    const postsWithLikes = posts.map((post) => ({
+      id: post.id,
+      title: post.title,
+      content: post.content,
+      createdAt: post.createdAt,
+      author: {
+        id: post.author.id,
+        username: post.author.username
+      },
+      likesCount: likesCountMap.get(post.id) ?? 0,
+      userHasLiked: userLikedMap.get(post.id) ?? false
+    }));
 
     return {
       posts: postsWithLikes,

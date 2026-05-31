@@ -12,16 +12,24 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  username  String   @unique
-  role      Role     @default(USER)
-  posts     Post[]
-  likes     Like[]
-  comments  Comment[]  // ← Relación inversa: comentarios del usuario
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(uuid())
+  email       String   @unique
+  password    String
+  username    String   @unique
+  role        Role     @default(USER)
+  // Perfil público
+  displayName String?
+  bio         String?
+  avatarUrl   String?
+  coverUrl    String?
+  location    String?
+  website     String?
+  // Relaciones
+  posts       Post[]
+  likes       Like[]
+  comments    Comment[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Post {
