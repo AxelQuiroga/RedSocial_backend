@@ -168,7 +168,3 @@ export function createDeletePostImageUseCase(): DeletePostImageUseCase {
 export function createReorderPostImagesUseCase(): ReorderPostImagesUseCase {
   return new ReorderPostImagesUseCase(createPostImageRepository());
 }
-
-export function createPostImageRepository(): PostImageRepository {
-  return new PrismaPostImageRepository(getPrismaClient());
-}

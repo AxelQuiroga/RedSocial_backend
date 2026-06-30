@@ -21,6 +21,6 @@ export class DeletePostImageUseCase {
     await this.imageRepo.softDelete(imageId);
 
     // Encolar hard delete asíncrono (Outbox pattern o RabbitMQ directo)
-    await eventBus.publish("image.hard_delete", { imageId, key: image.key });
+    eventBus.emit("image.hard_delete", { imageId, key: image.key });
   }
 }// ReorderPostImagesUseCase.ts / GetPostImagesUseCase.ts — Simples, delegando al repo.

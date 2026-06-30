@@ -18,7 +18,8 @@
       "@application/*": ["application/*"],
       "@infrastructure/*": ["infrastructure/*"],
       "@interfaces/*": ["interfaces/*"],
-      "@config/*": ["config/*"]
+      "@config/*": ["config/*"],
+      "@middlewares/*": ["middlewares/*"]
     },
     // For nodejs:
     // "lib": ["esnext"],

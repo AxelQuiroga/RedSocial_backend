@@ -1,8 +1,9 @@
-import type { PresignUploadInput } from "@application/contracts/post/PresignUploadInput.js";
+﻿import type { PresignUploadInput } from "@application/contracts/post/PresignUploadInput.js";
 import type { PresignUploadOutput, PresignedUpload } from "@application/contracts/post/PresignUploadOutput.js";
 import type { StorageService } from "@domain/services/StorageService.js";
-import type { UserRepository } from "@domain/repositories/UserRepository.js"; // para validar user existe
-import { v4 as uuidv4 } from "uuid"; // npm i uuid @types/uuid
+import type { UserRepository } from "@domain/repositories/UserRepository.js";
+import { randomUUID } from "node:crypto";
+import { env } from "@config/env.js";
 
 export class PresignUploadUseCase {
   constructor(
@@ -11,32 +12,30 @@ export class PresignUploadUseCase {
   ) {}
 
   async execute(userId: string, input: PresignUploadInput): Promise<PresignUploadOutput> {
-    // Validar usuario existe
     const user = await this.userRepo.findById(userId);
     if (!user) throw new Error("Usuario no encontrado");
 
-    // Validar cantidad
-    if (input.files.length > 5) throw new Error("Máximo 5 imágenes por post");
-
-    // Validar cada archivo (tipo y tamaño básico)
-    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
-    const maxSize = 5 * 1024 * 1024; // 5MB - coincidir con env
-
-    for (const f of input.files) {
-      if (!allowedTypes.includes(f.type)) throw new Error(`Tipo no permitido: ${f.type}`);
-      if (f.size > maxSize) throw new Error(`Archivo ${f.name} supera 5MB`);
+    if (input.files.length > env.IMAGE_MAX_PER_POST) {
+      throw new Error(`Máximo ${env.IMAGE_MAX_PER_POST} imágenes por post`);
     }
 
-    // Generar presigned URLs
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    const maxSize = env.IMAGE_MAX_SIZE_MB * 1024 * 1024;
+
+    for (const file of input.files) {
+      if (!allowedTypes.includes(file.type)) throw new Error(`Tipo no permitido: ${file.type}`);
+      if (file.size > maxSize) throw new Error(`Archivo ${file.name} supera ${env.IMAGE_MAX_SIZE_MB}MB`);
+    }
+
     const uploads: PresignedUpload[] = [];
 
-    for (const f of input.files) {
-      const ext = f.type === "image/jpeg" ? "jpg" : f.type.split("/")[1];
-      const uuid = uuidv4();
+    for (const file of input.files) {
+      const ext = file.type === "image/jpeg" ? "jpg" : file.type.split("/")[1];
+      const uuid = randomUUID();
       const tempKey = `temp/${userId}/${uuid}.${ext}`;
-      const finalKey = `posts/${uuid}.webp`; // postId se asigna al confirmar
+      const finalKey = `posts/${uuid}.webp`;
 
-      const { url } = await this.storage.generatePresignedPutUrl(tempKey, f.type);
+      const { url } = await this.storage.generatePresignedPutUrl(tempKey, file.type, 3600);
       const publicUrl = this.storage.getPublicUrl(finalKey);
 
       uploads.push({ key: finalKey, tempKey, uploadUrl: url, publicUrl });

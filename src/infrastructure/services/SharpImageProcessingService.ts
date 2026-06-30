@@ -4,10 +4,10 @@ import { env } from "@config/env.js";
 
 const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 const MAGIC_BYTES: Record<string, number[]> = {
-  "image/jpeg": [0xFF, 0xD8, 0xFF],
-  "image/png": [0x89, 0x50, 0x4E, 0x47],
-  "image/webp": [0x52, 0x49, 0x46, 0x46], // RIFF... necesita más check
-  "image/gif": [0x47, 0x49, 0x46], // GIF
+  "image/jpeg": [0xff, 0xd8, 0xff],
+  "image/png": [0x89, 0x50, 0x4e, 0x47],
+  "image/webp": [0x52, 0x49, 0x46, 0x46],
+  "image/gif": [0x47, 0x49, 0x46],
 };
 
 export class SharpImageProcessingService implements ImageProcessingService {
@@ -16,7 +16,6 @@ export class SharpImageProcessingService implements ImageProcessingService {
       return { valid: false, error: `Archivo supera ${env.IMAGE_MAX_SIZE_MB}MB` };
     }
 
-    // Magic bytes check
     const header = buffer.subarray(0, 12);
     let detectedMime: string | null = null;
 
@@ -26,8 +25,18 @@ export class SharpImageProcessingService implements ImageProcessingService {
         break;
       }
     }
-    // WebP necesita check extra (RIFF....WEBP)
-    if (!detectedMime && header.subarray(0,4).toString() === "RIFF" && header.subarray(8,12).toString() === "WEBP") {
+
+    if (
+      !detectedMime &&
+      header[0] === 0x52 &&
+      header[1] === 0x49 &&
+      header[2] === 0x46 &&
+      header[3] === 0x46 &&
+      header[8] === 0x57 &&
+      header[9] === 0x45 &&
+      header[10] === 0x42 &&
+      header[11] === 0x50
+    ) {
       detectedMime = "image/webp";
     }
 
@@ -35,7 +44,6 @@ export class SharpImageProcessingService implements ImageProcessingService {
       return { valid: false, error: "Tipo de archivo no permitido (solo JPG, PNG, WebP, GIF)" };
     }
 
-    // Validación extra con Sharp
     try {
       const metadata = await sharp(buffer).metadata();
       if (metadata.width && metadata.width > env.IMAGE_MAX_DIMENSION) {
@@ -51,11 +59,14 @@ export class SharpImageProcessingService implements ImageProcessingService {
     return { valid: true, mimeType: detectedMime };
   }
 
-  async processToWebP(buffer: Buffer, options = {}): Promise<ProcessedImage> {
+  async processToWebP(
+    buffer: Buffer,
+    options: { maxDimension?: number; quality?: number } = {}
+  ): Promise<ProcessedImage> {
     const { maxDimension = env.IMAGE_MAX_DIMENSION, quality = env.IMAGE_QUALITY } = options;
 
     const processed = await sharp(buffer)
-      .rotate() // Auto-orient por EXIF
+      .rotate()
       .resize(maxDimension, maxDimension, {
         fit: "inside",
         withoutEnlargement: true,

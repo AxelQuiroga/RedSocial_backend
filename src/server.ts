@@ -3,7 +3,9 @@ moduleAlias.addAliases({
   "@domain": "./dist/domain",
   "@application": "./dist/application", 
   "@infrastructure": "./dist/infrastructure",
-  "@interfaces": "./dist/interfaces"
+  "@interfaces": "./dist/interfaces",
+  "@config": "./dist/config",
+  "@middlewares": "./dist/middlewares"
 });
 
 import app from "./app.js";

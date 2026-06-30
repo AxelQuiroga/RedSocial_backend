@@ -26,6 +26,7 @@ export class PostImagesController {
     try {
       const userId = req.user!.userId;
       const postId = req.params.postId; // o viene en body
+      if (!postId || Array.isArray(postId)) throw new Error("postId inválido");
       const result = await this.confirm.execute(postId, userId, req.body);
       res.status(201).json(result);
     } catch (e: any) {
@@ -36,7 +37,9 @@ export class PostImagesController {
   async deleteImage(req: Request, res: Response) {
     try {
       const userId = req.user!.userId;
-      await this.deleteImg.execute(req.params.imageId, userId);
+      const imageId = req.params.imageId;
+      if (!imageId || Array.isArray(imageId)) throw new Error("imageId inválido");
+      await this.deleteImg.execute(imageId, userId);
       res.status(204).send();
     } catch (e: any) {
       const status = e.message === "Imagen no encontrada" ? 404 : 400;

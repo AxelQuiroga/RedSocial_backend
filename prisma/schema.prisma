@@ -40,6 +40,7 @@ model Post {
   authorId  String
   likes     Like[]
   comments  Comment[]  // ← Relación inversa: comentarios del post
+  images    PostImage[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

@@ -2,6 +2,7 @@ import type { RegisterUserInput } from "../../contracts/user/RegisterUserInput.j
 import type { UserRepository } from "../../../domain/repositories/UserRepository.js";
 import bcrypt from "bcrypt";
 import type { UserOutput } from "../../contracts/user/UserOutput.js";
+import { env } from "../../../config/env.js";
 
 export class RegisterUserUseCase {
   constructor(private userRepository: UserRepository) { }
@@ -16,7 +17,7 @@ export class RegisterUserUseCase {
     }
 
     //  Hash password
-    const rounds = Number(process.env.BCRYPT_SALT_ROUNDS) || 12;
+    const rounds = env.BCRYPT_SALT_ROUNDS;
     const hashedPassword = await bcrypt.hash(data.password, rounds);
 
     const user = await this.userRepository.create({

@@ -2,6 +2,7 @@ import { S3Client, PutObjectCommand, DeleteObjectCommand, CopyObjectCommand, Hea
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import type { StorageService } from "@domain/services/StorageService.js";
 import { env } from "@config/env.js";
+import type { Readable } from "stream";
 
 export class S3StorageService implements StorageService {
   private client: S3Client;
@@ -60,5 +61,28 @@ export class S3StorageService implements StorageService {
     } catch {
       return false;
     }
+  }
+
+   private async streamToBuffer(stream: Readable): Promise<Buffer> {
+    const chunks: Buffer[] = [];
+    for await (const chunk of stream) chunks.push(chunk);
+    return Buffer.concat(chunks);
+  }
+
+  async getObject(key: string): Promise<Buffer> {
+    const command = new GetObjectCommand({ Bucket: this.bucket, Key: key });
+    const response = await this.client.send(command);
+    if (!response.Body) throw new Error(`Objeto vacío: ${key}`);
+    return this.streamToBuffer(response.Body as Readable);
+  }
+
+  async putObject(key: string, body: Buffer, contentType: string): Promise<void> {
+    const command = new PutObjectCommand({
+      Bucket: this.bucket,
+      Key: key,
+      Body: body,
+      ContentType: contentType,
+    });
+    await this.client.send(command);
   }
 }
