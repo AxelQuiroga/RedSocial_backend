@@ -12,6 +12,7 @@ import { PresignUploadUseCase } from "@application/use-cases/post/PresignUploadU
 import { ConfirmUploadUseCase } from "@application/use-cases/post/ConfirmUploadUseCase.js";
 import { DeletePostImageUseCase } from "@application/use-cases/post/DeletePostImageUseCase.js";
 import { ReorderPostImagesUseCase } from "@application/use-cases/post/ReorderPostImagesUseCase.js";
+import { GetPostImagesUseCase } from "@application/use-cases/post/GetPostImagesUseCase.js";
 
 
 
@@ -162,9 +163,13 @@ export function createConfirmUploadUseCase(): ConfirmUploadUseCase {
 }
 
 export function createDeletePostImageUseCase(): DeletePostImageUseCase {
-  return new DeletePostImageUseCase(createPostImageRepository(), createStorageService());
+  return new DeletePostImageUseCase(createPostImageRepository(), createPostRepository());
 }
 
 export function createReorderPostImagesUseCase(): ReorderPostImagesUseCase {
-  return new ReorderPostImagesUseCase(createPostImageRepository());
+  return new ReorderPostImagesUseCase(createPostImageRepository(), createPostRepository());
+}
+
+export function createGetPostImagesUseCase(): GetPostImagesUseCase {
+  return new GetPostImagesUseCase(createPostImageRepository());
 }

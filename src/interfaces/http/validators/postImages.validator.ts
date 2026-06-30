@@ -1,4 +1,6 @@
-import { z } from "zod";
+﻿import { z } from "zod";
+
+const postIdParams = z.object({ postId: z.string().uuid() });
 
 export const presignUploadSchema = {
   body: z.object({
@@ -11,6 +13,7 @@ export const presignUploadSchema = {
 };
 
 export const confirmUploadSchema = {
+  params: postIdParams,
   body: z.object({
     images: z.array(z.object({
       tempKey: z.string(),
@@ -19,14 +22,19 @@ export const confirmUploadSchema = {
   }).strict(),
 };
 
+export const getPostImagesSchema = {
+  params: postIdParams,
+};
+
 export const deleteImageSchema = {
   params: z.object({ imageId: z.string().uuid() }),
 };
 
 export const reorderImagesSchema = {
+  params: postIdParams,
   body: z.object({
-    imageOrders: z.array(z.object({
-      id: z.string().uuid(),
+    images: z.array(z.object({
+      imageId: z.string().uuid(),
       order: z.number().int().min(0),
     })),
   }).strict(),

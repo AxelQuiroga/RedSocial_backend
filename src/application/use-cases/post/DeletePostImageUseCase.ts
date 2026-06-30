@@ -1,11 +1,11 @@
-import type { PostImageRepository } from "@domain/repositories/PostImageRepository.js";
-import type { StorageService } from "@domain/services/StorageService.js";
-import { eventBus } from "@config/events.config.js"; // o tu queue
+﻿import type { PostImageRepository } from "@domain/repositories/PostImageRepository.js";
+import type { PostRepository } from "@domain/repositories/PostRepository.js";
+import { eventBus } from "@config/events.config.js";
 
 export class DeletePostImageUseCase {
   constructor(
     private imageRepo: PostImageRepository,
-    private storage: StorageService
+    private postRepo: PostRepository
   ) {}
 
   async execute(imageId: string, userId: string): Promise<void> {
@@ -13,14 +13,11 @@ export class DeletePostImageUseCase {
     if (!image) throw new Error("Imagen no encontrada");
     if (image.deletedAt) throw new Error("Ya eliminada");
 
-    // Verificar ownership (el post pertenece al user)
-    // Necesitás access al PostRepo o agregar userId a PostImage
-    // Opción simple: agregar postId y validar por ahí
+    const post = await this.postRepo.findById(image.postId);
+    if (!post) throw new Error("Post no encontrado");
+    if (post.authorId !== userId) throw new Error("No autorizado");
 
-    // Soft delete en BD
     await this.imageRepo.softDelete(imageId);
-
-    // Encolar hard delete asíncrono (Outbox pattern o RabbitMQ directo)
     eventBus.emit("image.hard_delete", { imageId, key: image.key });
   }
-}// ReorderPostImagesUseCase.ts / GetPostImagesUseCase.ts — Simples, delegando al repo.
+}
