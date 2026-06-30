@@ -1,5 +1,20 @@
 import { prisma } from "@infrastructure/database/prisma.js";
 
+//imagenes
+import type { PostImageRepository } from "@domain/repositories/PostImageRepository.js";
+import type { StorageService } from "@domain/services/StorageService.js";
+import type { ImageProcessingService } from "@domain/services/ImageProcessingService.js";
+import { PrismaPostImageRepository } from "@infrastructure/repositories/PrismaPostImageRepository.js";
+import { S3StorageService } from "@infrastructure/storage/S3StorageService.js";
+import { SharpImageProcessingService } from "@infrastructure/services/SharpImageProcessingService.js";
+
+import { PresignUploadUseCase } from "@application/use-cases/post/PresignUploadUseCase.js";
+import { ConfirmUploadUseCase } from "@application/use-cases/post/ConfirmUploadUseCase.js";
+import { DeletePostImageUseCase } from "@application/use-cases/post/DeletePostImageUseCase.js";
+import { ReorderPostImagesUseCase } from "@application/use-cases/post/ReorderPostImagesUseCase.js";
+
+
+
 // Domain Types
 import type { PostRepository } from "@domain/repositories/PostRepository.js";
 import type { LikeRepository } from "@domain/repositories/LikeRepository.js";
@@ -34,6 +49,18 @@ import { PostController } from "@interfaces/http/controllers/post.controller.js"
 
 // Events
 import { eventBus } from "@config/events.config.js";
+
+export function createPostImageRepository(): PostImageRepository {
+  return new PrismaPostImageRepository(getPrismaClient());
+}
+
+export function createStorageService(): StorageService {
+  return new S3StorageService();
+}
+
+export function createImageProcessingService(): ImageProcessingService {
+  return new SharpImageProcessingService();
+}
 
 export function getPrismaClient() {
   return prisma;
@@ -119,4 +146,29 @@ export function createPostController(): PostController {
 export async function shutdownContainer(): Promise<void> {
   const client = getPrismaClient();
   await client.$disconnect();
+}
+
+
+export function createPresignUploadUseCase(): PresignUploadUseCase {
+  return new PresignUploadUseCase(createStorageService(), createUserRepository());
+}
+
+export function createConfirmUploadUseCase(): ConfirmUploadUseCase {
+  return new ConfirmUploadUseCase(
+    createStorageService(),
+    createImageProcessingService(),
+    createPostImageRepository()
+  );
+}
+
+export function createDeletePostImageUseCase(): DeletePostImageUseCase {
+  return new DeletePostImageUseCase(createPostImageRepository(), createStorageService());
+}
+
+export function createReorderPostImagesUseCase(): ReorderPostImagesUseCase {
+  return new ReorderPostImagesUseCase(createPostImageRepository());
+}
+
+export function createPostImageRepository(): PostImageRepository {
+  return new PrismaPostImageRepository(getPrismaClient());
 }

@@ -107,6 +107,24 @@ model Notification {
   @@index([createdAt])
 }
 
+model PostImage {
+  id        String   @id @default(uuid())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  key       String   @unique  // posts/{postId}/{uuid}.webp
+  url       String
+  width     Int
+  height    Int
+  size      Int
+  mimeType  String   @default("image/webp")
+  order     Int      @default(0)
+  deletedAt DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([postId, order])
+  @@index([deletedAt])
+}
+
 enum Role {
   USER
   ADMIN

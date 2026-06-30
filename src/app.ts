@@ -10,6 +10,7 @@ import notificationRoutes from "./interfaces/http/routes/notification.routes.js"
 import cors from "cors";
 import { env } from "./config/env.js";
 import "./config/events.config.js"; // ← Importar para registrar listeners al iniciar
+import postImagesRoutes from "./interfaces/http/routes/postImages.routes.js";
 
 const app = express();
 
@@ -27,6 +28,7 @@ app.use("/posts", likeRoutes);        // Rutas de likes (POST /:id/like, DELETE 
 app.use("/posts", postCommentRoutes); // Rutas de comentarios en posts (POST /:id/comments, GET /:id/comments)
 app.use("/comments", commentRoutes); // Rutas de comentarios individuales (PUT /:id, DELETE /:id, GET /:id/replies)
 app.use("/notifications", notificationRoutes); // Rutas de notificaciones (GET /, GET /unread-count, PUT /:id/read, PUT /read-all)
+app.use("/posts", postImagesRoutes); // Rutas de imagenes en posts (POST /:id/images, GET /:id/images)
 // SIEMPRE al final
 app.use(errorHandler);
 
