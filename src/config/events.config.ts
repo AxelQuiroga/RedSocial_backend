@@ -1,27 +1,27 @@
-import { RabbitMQEventBus } from "../infrastructure/events/RabbitMQEventBus.js";
 import { NotificationListeners } from "../infrastructure/events/NotificationListeners.js";
-import { createNotificationService } from "../infrastructure/di/factory.js";
+import { ImageCleanupListener } from "../infrastructure/events/ImageCleanupListener.js";
+import { createNotificationService, createStorageService, createPostImageRepository } from "../infrastructure/di/factory.js";
+import { eventBus } from "./eventBus.js";
 
-/**
- * Configuración personalizada para reconexión automática.
- */
-const retryConfig = {
-  maxRetries: 10,
-  initialDelay: 1000,
-  maxDelay: 30000,
-  backoffMultiplier: 2,
-  jitterFactor: 0.1
-};
+let notificationListeners: NotificationListeners | null = null;
+let imageCleanupListener: ImageCleanupListener | null = null;
 
-// 1. Crear EventBus
-export const eventBus = new RabbitMQEventBus(retryConfig);
+function initializeEventListeners(): void {
+  if (!notificationListeners) {
+    const notificationService = createNotificationService();
+    notificationListeners = new NotificationListeners(notificationService, eventBus);
+  }
 
-// 2. Crear servicios y listeners vía Factory
-const notificationService = createNotificationService();
-const notificationListeners = new NotificationListeners(notificationService, eventBus);
+  if (!imageCleanupListener) {
+    const storageService = createStorageService();
+    const postImageRepository = createPostImageRepository();
+    imageCleanupListener = new ImageCleanupListener(storageService, postImageRepository, eventBus);
+  }
+}
 
 // 4. Conectar a RabbitMQ (llamar antes de app.listen)
 export async function connectEventBus(): Promise<void> {
+  initializeEventListeners();
   await eventBus.connect();
 }
 

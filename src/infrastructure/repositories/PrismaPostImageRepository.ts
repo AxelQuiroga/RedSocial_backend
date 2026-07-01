@@ -36,9 +36,9 @@ export class PrismaPostImageRepository implements PostImageRepository {
   }
 
   async reorder(postId: string, imageOrders: { id: string; order: number }[]): Promise<void> {
-    await this.prisma.$transaction(
-      imageOrders.map(async ({ id, order }) => {
-        const result = await this.prisma.postImage.updateMany({
+    await this.prisma.$transaction(async (tx) => {
+      for (const { id, order } of imageOrders) {
+        const result = await tx.postImage.updateMany({
           where: { id, postId, deletedAt: null },
           data: { order },
         });
@@ -46,7 +46,7 @@ export class PrismaPostImageRepository implements PostImageRepository {
         if (result.count !== 1) {
           throw new Error(`Imagen ${id} no pertenece al post ${postId}`);
         }
-      })
-    );
+      }
+    });
   }
 }

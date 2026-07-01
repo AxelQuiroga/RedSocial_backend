@@ -13,7 +13,11 @@ import { env } from "./config/env.js";
 import { connectEventBus } from "./config/events.config.js";
 
 async function bootstrap() {
-  await connectEventBus();
+  // No bloqueamos el arranque si RabbitMQ no está listo aún.
+  // El ReconnectionManager lo reintentará en background automáticamente.
+  await connectEventBus().catch(err => {
+    console.warn('[Bootstrap] RabbitMQ no disponible, se reconectará en background:', err.message);
+  });
   app.listen(env.PORT, () => {
     console.log(`Servidor corriendo en http://localhost:${env.PORT}`);
   });

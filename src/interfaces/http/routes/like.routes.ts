@@ -10,7 +10,7 @@ import { PrismaPostRepository } from "../../../infrastructure/repositories/Prism
 import { RetryableLikeRepository } from "../../../infrastructure/repositories/RetryableLikeRepository.js";
 import { RetryablePostRepository } from "../../../infrastructure/repositories/RetryablePostRepository.js";
 import { prisma } from "../../../infrastructure/database/prisma.js";
-import { eventBus } from "../../../config/events.config.js";
+import { eventBus } from "../../../config/eventBus.js";
 import { likePostParamsSchema } from "../validators/like.schema.js";
 
 // Repositorios base

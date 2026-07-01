@@ -8,7 +8,7 @@ import { GetPostCommentsUseCase } from "../../../application/use-cases/comment/G
 import { PrismaCommentRepository } from "../../../infrastructure/repositories/PrismaCommentRepository.js";
 import { PrismaPostRepository } from "../../../infrastructure/repositories/PrismaPostRepository.js";
 import { prisma } from "../../../infrastructure/database/prisma.js";
-import { eventBus } from "../../../config/events.config.js";  // ← Importar de config
+import { eventBus } from "../../../config/eventBus.js";
 import {
   commentIdParamsSchema,
   createCommentSchema,

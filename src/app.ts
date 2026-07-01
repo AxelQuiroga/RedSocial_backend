@@ -9,7 +9,6 @@ import commentRoutes from "./interfaces/http/routes/comment.routes.js";
 import notificationRoutes from "./interfaces/http/routes/notification.routes.js";
 import cors from "cors";
 import { env } from "./config/env.js";
-import "./config/events.config.js"; // ← Importar para registrar listeners al iniciar
 import postImagesRoutes from "./interfaces/http/routes/postImages.routes.js";
 
 const app = express();

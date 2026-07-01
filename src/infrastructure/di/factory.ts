@@ -49,7 +49,7 @@ import { GeminiAIService } from "@infrastructure/services/GeminiAIService.js";
 import { PostController } from "@interfaces/http/controllers/post.controller.js";
 
 // Events
-import { eventBus } from "@config/events.config.js";
+import { eventBus } from "@config/eventBus.js";
 
 export function createPostImageRepository(): PostImageRepository {
   return new PrismaPostImageRepository(getPrismaClient());

@@ -1,6 +1,6 @@
 ﻿import type { PostImageRepository } from "@domain/repositories/PostImageRepository.js";
 import type { PostRepository } from "@domain/repositories/PostRepository.js";
-import { eventBus } from "@config/events.config.js";
+import { eventBus } from "@config/eventBus.js";
 
 export class DeletePostImageUseCase {
   constructor(

@@ -18,5 +18,6 @@ services:
 
 volumes:
   minio_data:
-#docker compose up -d minio 
-#docker compose down
+
+# docker compose up -d minio 
+# docker compose down
