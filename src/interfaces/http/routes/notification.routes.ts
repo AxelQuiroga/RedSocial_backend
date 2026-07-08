@@ -1,33 +1,14 @@
 import { Router } from "express";
 import { authMiddleware } from "../../../middlewares/auth.middleware.js";
 import { validate } from "../../../middlewares/validate.middleware.js";
-import { NotificationController } from "../controllers/notification.controller.js";
-import { GetNotificationsUseCase } from "../../../application/use-cases/notification/GetNotificationsUseCase.js";
-import { GetUnreadCountUseCase } from "../../../application/use-cases/notification/GetUnreadCountUseCase.js";
-import { MarkAsReadUseCase } from "../../../application/use-cases/notification/MarkAsReadUseCase.js";
-import { MarkAllAsReadUseCase } from "../../../application/use-cases/notification/MarkAllAsReadUseCase.js";
-import { PrismaNotificationRepository } from "../../../infrastructure/repositories/PrismaNotificationRepository.js";
-import { prisma } from "../../../infrastructure/database/prisma.js";
+import { createNotificationController } from "../../../infrastructure/di/factory.js";
 import {
   getNotificationsSchema,
   notificationIdSchema
 } from "../validators/notification.schema.js";
 
 const router = Router();
-
-const notificationRepository = new PrismaNotificationRepository(prisma);
-
-const getNotificationsUseCase = new GetNotificationsUseCase(notificationRepository);
-const getUnreadCountUseCase = new GetUnreadCountUseCase(notificationRepository);
-const markAsReadUseCase = new MarkAsReadUseCase(notificationRepository);
-const markAllAsReadUseCase = new MarkAllAsReadUseCase(notificationRepository);
-
-const notificationController = new NotificationController(
-  getNotificationsUseCase,
-  getUnreadCountUseCase,
-  markAsReadUseCase,
-  markAllAsReadUseCase
-);
+const notificationController = createNotificationController();
 
 /**
  * GET /notifications

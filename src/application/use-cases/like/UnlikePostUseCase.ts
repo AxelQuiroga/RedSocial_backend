@@ -2,6 +2,7 @@ import type { LikeRepository } from "../../../domain/repositories/LikeRepository
 import type { PostRepository } from "../../../domain/repositories/PostRepository.js";
 import type { EventBus } from "../../../domain/events/EventBus.js";
 import type { UnlikePostInput } from "../../contracts/like/UnlikePostInput.js";
+import { NotFoundError } from "../../../domain/errors/NotFoundError.js";
 
 /**
  * Caso de uso para quitar like a un post.
@@ -37,7 +38,7 @@ export class UnlikePostUseCase {
   async execute(userId: string, data: UnlikePostInput): Promise<boolean> {
     const post = await this.postRepository.findById(data.postId);
     if (!post) {
-      throw new Error("Post no encontrado");
+      throw new NotFoundError("Post no encontrado", "POST_NOT_FOUND");
     }
 
     const deleted = await this.likeRepository.delete(userId, data.postId);

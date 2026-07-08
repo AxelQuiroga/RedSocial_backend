@@ -8,10 +8,11 @@ export default defineConfig({
     testTimeout: 30000,
     globalSetup: ['./tests/global-setup.ts'],
     setupFiles: ['./tests/setup.ts'],
-    poolOptions: {
-      threads: {
-        singleThread: true,
-      },
+    singleThread: true,
+    env: {
+      JWT_SECRET: 'test-secret-key-for-unit-tests',
+      BCRYPT_SALT_ROUNDS: '4',
+      NODE_ENV: 'test',
     },
   },
   resolve: {

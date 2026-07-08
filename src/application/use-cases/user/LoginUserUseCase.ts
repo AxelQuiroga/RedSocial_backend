@@ -1,6 +1,8 @@
 import type { UserRepository } from "../../../domain/repositories/UserRepository.js";
 import type { LoginInput } from "../../contracts/user/LoginInput.js";
 import type { LoginOutput } from "../../contracts/user/LoginOutput.js";
+import { UnauthorizedError } from "../../../domain/errors/UnauthorizedError.js";
+import { ValidationError } from "../../../domain/errors/ValidationError.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { env } from "../../../config/env.js";
@@ -12,11 +14,11 @@ export class LoginUserUseCase {
 
     //  Validaciones
     if (!data.email || !data.email.includes("@")) {
-      throw new Error("Email inválido");
+      throw new ValidationError("Email inválido", "INVALID_EMAIL");
     }
 
     if (!data.password || data.password.length < 6) {
-      throw new Error("Password inválida");
+      throw new ValidationError("Password inválida", "INVALID_PASSWORD");
     }
 
     //  Buscar usuario
@@ -34,7 +36,7 @@ export class LoginUserUseCase {
     );
 
     if (!user || !isPasswordValid) {
-      throw new Error("Credenciales inválidas");
+      throw new UnauthorizedError("Credenciales inválidas");
     }
 
     // Token

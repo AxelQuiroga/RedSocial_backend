@@ -15,6 +15,7 @@ import {
   toUserPrivateProfileResponse,
   toUserPublicProfileResponse
 } from "../mappers/user.mapper.js";
+
 export class UserController {
   constructor(
     private registerUserUseCase: RegisterUserUseCase,
@@ -25,80 +26,47 @@ export class UserController {
   ) { }
 
   async register(req: Request, res: Response) {
-    try {
-
-      const input = toRegisterUserInput(
-        res.locals.validated.body as RegisterUserRequest
-      );
-
-      const user = await this.registerUserUseCase.execute(input);
-
-      res.status(201).json(toUserPrivateProfileResponse(user));
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
-    }
+    const input = toRegisterUserInput(
+      res.locals.validated.body as RegisterUserRequest
+    );
+    const user = await this.registerUserUseCase.execute(input);
+    res.status(201).json(toUserPrivateProfileResponse(user));
   }
 
   async login(req: Request, res: Response) {
-    try {
-
-      const input = toLoginInput(
-        res.locals.validated.body as LoginRequest
-      );
-
-      const result = await this.loginUserUseCase.execute(input);
-
-      res.json(toLoginResponse(result));
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
-    }
+    const input = toLoginInput(
+      res.locals.validated.body as LoginRequest
+    );
+    const result = await this.loginUserUseCase.execute(input);
+    res.json(toLoginResponse(result));
   }
 
   async me(req: Request, res: Response) {
-    try {
-      if (!req.user) {
-        return res.status(401).json({ error: "No autorizado" });
-      }
-      const userId = req.user.userId;
-
-      const user = await this.getMyProfileUseCase.execute(userId);
-
-      res.json(toUserPrivateProfileResponse(user));
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
+    if (!req.user) {
+      res.status(401).json({ error: "No autorizado" });
+      return;
     }
+    const userId = req.user.userId;
+    const user = await this.getMyProfileUseCase.execute(userId);
+    res.json(toUserPrivateProfileResponse(user));
   }
 
   async update(req: Request, res: Response) {
-    try {
-
-      if (!req.user) {
-        return res.status(401).json({ error: "No autorizado" });
-      }
-      const userId = req.user.userId;
-
-      const input = toUpdateProfileInput(
-        res.locals.validated.body as UpdateProfileRequest
-      );
-
-      const updatedUser = await this.updateUserProfileUseCase.execute(userId, input);
-
-      res.json(toUserPrivateProfileResponse(updatedUser));
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
+    if (!req.user) {
+      res.status(401).json({ error: "No autorizado" });
+      return;
     }
+    const userId = req.user.userId;
+    const input = toUpdateProfileInput(
+      res.locals.validated.body as UpdateProfileRequest
+    );
+    const updatedUser = await this.updateUserProfileUseCase.execute(userId, input);
+    res.json(toUserPrivateProfileResponse(updatedUser));
   }
 
   async publicProfile(req: Request, res: Response) {
-    try {
-      const { username } = res.locals.validated.params as { username: string };
-
-      const user = await this.getUserPublicProfileUseCase.execute(username);
-
-      res.json(toUserPublicProfileResponse(user));
-    } catch (error: any) {
-      res.status(404).json({ error: error.message });
-    }
+    const { username } = res.locals.validated.params as { username: string };
+    const user = await this.getUserPublicProfileUseCase.execute(username);
+    res.json(toUserPublicProfileResponse(user));
   }
-
 }

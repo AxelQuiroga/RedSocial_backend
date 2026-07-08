@@ -1,5 +1,6 @@
 import type { UserRepository } from "../../../domain/repositories/UserRepository.js";
 import type { UserPrivateProfileOutput } from "../../contracts/user/UserPrivateProfileOutput.js";
+import { NotFoundError } from "../../../domain/errors/NotFoundError.js";
 
 export class GetMyProfileUseCase {
   constructor(private userRepository: UserRepository) {}
@@ -9,7 +10,7 @@ export class GetMyProfileUseCase {
     const user = await this.userRepository.findById(userId);
 
     if (!user) {
-      throw new Error("Usuario no encontrado");
+      throw new NotFoundError("Usuario no encontrado", "USER_NOT_FOUND");
     }
 
     return {

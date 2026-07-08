@@ -1,6 +1,6 @@
 import { prisma } from "@infrastructure/database/prisma.js";
 
-//imagenes
+// Imagenes
 import type { PostImageRepository } from "@domain/repositories/PostImageRepository.js";
 import type { StorageService } from "@domain/services/StorageService.js";
 import type { ImageProcessingService } from "@domain/services/ImageProcessingService.js";
@@ -13,8 +13,6 @@ import { ConfirmUploadUseCase } from "@application/use-cases/post/ConfirmUploadU
 import { DeletePostImageUseCase } from "@application/use-cases/post/DeletePostImageUseCase.js";
 import { ReorderPostImagesUseCase } from "@application/use-cases/post/ReorderPostImagesUseCase.js";
 import { GetPostImagesUseCase } from "@application/use-cases/post/GetPostImagesUseCase.js";
-
-
 
 // Domain Types
 import type { PostRepository } from "@domain/repositories/PostRepository.js";
@@ -30,23 +28,55 @@ import { PrismaUserRepository } from "@infrastructure/repositories/PrismaUserRep
 import { PrismaCommentRepository } from "@infrastructure/repositories/PrismaCommentRepository.js";
 import { PrismaNotificationRepository } from "@infrastructure/repositories/PrismaNotificationRepository.js";
 
-// Application Use Cases
+// Retryable Repositories (para operaciones de escritura concurrentes)
+import { RetryableLikeRepository } from "@infrastructure/repositories/RetryableLikeRepository.js";
+import { RetryablePostRepository } from "@infrastructure/repositories/RetryablePostRepository.js";
+
+// Application Use Cases — Posts
 import { CreatePostUseCase } from "@application/use-cases/post/CreatePostUseCase.js";
 import { GetPostsUseCase } from "@application/use-cases/post/GetPostsUseCase.js";
 import { GetMyPostsUseCase } from "@application/use-cases/post/GetMyPostsUseCase.js";
 import { DeletePostUseCase } from "@application/use-cases/post/DeletePostUseCase.js";
 import { UpdatePostUseCase } from "@application/use-cases/post/UpdatePostUseCase.js";
 import { GetPostsByUserUseCase } from "@application/use-cases/post/GetPostsByUserUseCase.js";
-import { GetPostLikesCountUseCase } from "@application/use-cases/like/GetPostLikesCountUseCase.js";
-import { GetUserPublicProfileUseCase } from "@application/use-cases/user/GetUserPublicProfileUseCase.js";
-import { NotificationService } from "@application/services/NotificationService.js";
 
-// Services (Interfaces & Implementations)
+// Application Use Cases — User
+import { RegisterUserUseCase } from "@application/use-cases/user/RegisterUserUseCase.js";
+import { LoginUserUseCase } from "@application/use-cases/user/LoginUserUseCase.js";
+import { GetMyProfileUseCase } from "@application/use-cases/user/GetMyProfileUseCase.js";
+import { UpdateUserProfileUseCase } from "@application/use-cases/user/UpdateUserProfileUseCase.js";
+import { GetUserPublicProfileUseCase } from "@application/use-cases/user/GetUserPublicProfileUseCase.js";
+
+// Application Use Cases — Like
+import { LikePostUseCase } from "@application/use-cases/like/LikePostUseCase.js";
+import { UnlikePostUseCase } from "@application/use-cases/like/UnlikePostUseCase.js";
+import { GetPostLikesCountUseCase } from "@application/use-cases/like/GetPostLikesCountUseCase.js";
+
+// Application Use Cases — Comment
+import { CreateCommentUseCase } from "@application/use-cases/comment/CreateCommentUseCase.js";
+import { UpdateCommentUseCase } from "@application/use-cases/comment/UpdateCommentUseCase.js";
+import { DeleteCommentUseCase } from "@application/use-cases/comment/DeleteCommentUseCase.js";
+import { GetPostCommentsUseCase } from "@application/use-cases/comment/GetPostCommentsUseCase.js";
+import { GetCommentRepliesUseCase } from "@application/use-cases/comment/GetCommentRepliesUseCase.js";
+
+// Application Use Cases — Notification
+import { GetNotificationsUseCase } from "@application/use-cases/notification/GetNotificationsUseCase.js";
+import { GetUnreadCountUseCase } from "@application/use-cases/notification/GetUnreadCountUseCase.js";
+import { MarkAsReadUseCase } from "@application/use-cases/notification/MarkAsReadUseCase.js";
+import { MarkAllAsReadUseCase } from "@application/use-cases/notification/MarkAllAsReadUseCase.js";
+
+// Services
+import { NotificationService } from "@application/services/NotificationService.js";
 import type { AIService } from "@domain/services/AIService.js";
 import { GeminiAIService } from "@infrastructure/services/GeminiAIService.js";
 
 // Controllers
 import { PostController } from "@interfaces/http/controllers/post.controller.js";
+import { PostImagesController } from "@interfaces/http/controllers/postImages.controller.js";
+import { UserController } from "@interfaces/http/controllers/user.controllers.js";
+import { LikeController } from "@interfaces/http/controllers/like.controller.js";
+import { CommentController } from "@interfaces/http/controllers/comment.controller.js";
+import { NotificationController } from "@interfaces/http/controllers/notification.controller.js";
 
 // Events
 import { eventBus } from "@config/eventBus.js";
@@ -117,8 +147,89 @@ export function createGetPostLikesCountUseCase(): GetPostLikesCountUseCase {
   return new GetPostLikesCountUseCase(createLikeRepository());
 }
 
+// ─── Retryable Repositories (para operaciones de escritura concurrente) ───
+
+export function createRetryableLikeRepository(): LikeRepository {
+  return new RetryableLikeRepository(
+    new PrismaLikeRepository(getPrismaClient()),
+    new PrismaPostRepository(getPrismaClient())
+  );
+}
+
+export function createRetryablePostRepository(): PostRepository {
+  return new RetryablePostRepository(new PrismaPostRepository(getPrismaClient()));
+}
+
+// ─── Use Cases: User ───────────────────────────────────────────────────────
+
+export function createRegisterUserUseCase(): RegisterUserUseCase {
+  return new RegisterUserUseCase(createUserRepository());
+}
+
+export function createLoginUserUseCase(): LoginUserUseCase {
+  return new LoginUserUseCase(createUserRepository());
+}
+
+export function createGetMyProfileUseCase(): GetMyProfileUseCase {
+  return new GetMyProfileUseCase(createUserRepository());
+}
+
+export function createUpdateUserProfileUseCase(): UpdateUserProfileUseCase {
+  return new UpdateUserProfileUseCase(createUserRepository());
+}
+
 export function createGetUserPublicProfileUseCase(): GetUserPublicProfileUseCase {
   return new GetUserPublicProfileUseCase(createUserRepository());
+}
+
+// ─── Use Cases: Like (usan retryable repos por la concurrencia) ────────────
+
+export function createLikePostUseCase(): LikePostUseCase {
+  return new LikePostUseCase(createRetryableLikeRepository(), createRetryablePostRepository(), eventBus);
+}
+
+export function createUnlikePostUseCase(): UnlikePostUseCase {
+  return new UnlikePostUseCase(createRetryableLikeRepository(), createRetryablePostRepository(), eventBus);
+}
+
+// ─── Use Cases: Comment ────────────────────────────────────────────────────
+
+export function createCreateCommentUseCase(): CreateCommentUseCase {
+  return new CreateCommentUseCase(createCommentRepository(), createPostRepository(), eventBus);
+}
+
+export function createUpdateCommentUseCase(): UpdateCommentUseCase {
+  return new UpdateCommentUseCase(createCommentRepository());
+}
+
+export function createDeleteCommentUseCase(): DeleteCommentUseCase {
+  return new DeleteCommentUseCase(createCommentRepository(), createPostRepository());
+}
+
+export function createGetPostCommentsUseCase(): GetPostCommentsUseCase {
+  return new GetPostCommentsUseCase(createCommentRepository());
+}
+
+export function createGetCommentRepliesUseCase(): GetCommentRepliesUseCase {
+  return new GetCommentRepliesUseCase(createCommentRepository());
+}
+
+// ─── Use Cases: Notification ───────────────────────────────────────────────
+
+export function createGetNotificationsUseCase(): GetNotificationsUseCase {
+  return new GetNotificationsUseCase(createNotificationRepository());
+}
+
+export function createGetUnreadCountUseCase(): GetUnreadCountUseCase {
+  return new GetUnreadCountUseCase(createNotificationRepository());
+}
+
+export function createMarkAsReadUseCase(): MarkAsReadUseCase {
+  return new MarkAsReadUseCase(createNotificationRepository());
+}
+
+export function createMarkAllAsReadUseCase(): MarkAllAsReadUseCase {
+  return new MarkAllAsReadUseCase(createNotificationRepository());
 }
 
 // Services Factory
@@ -140,6 +251,53 @@ export function createPostController(): PostController {
     createUpdatePostUseCase(),
     createGetPostsByUserUseCase(),
     createGetUserPublicProfileUseCase()
+  );
+}
+
+export function createPostImagesController(): PostImagesController {
+  return new PostImagesController(
+    createPresignUploadUseCase(),
+    createConfirmUploadUseCase(),
+    createDeletePostImageUseCase(),
+    createReorderPostImagesUseCase(),
+    createGetPostImagesUseCase()
+  );
+}
+
+export function createUserController(): UserController {
+  return new UserController(
+    createRegisterUserUseCase(),
+    createLoginUserUseCase(),
+    createGetMyProfileUseCase(),
+    createUpdateUserProfileUseCase(),
+    createGetUserPublicProfileUseCase()
+  );
+}
+
+export function createLikeController(): LikeController {
+  return new LikeController(
+    createLikePostUseCase(),
+    createUnlikePostUseCase(),
+    createGetPostLikesCountUseCase()
+  );
+}
+
+export function createCommentController(): CommentController {
+  return new CommentController(
+    createCreateCommentUseCase(),
+    createUpdateCommentUseCase(),
+    createDeleteCommentUseCase(),
+    createGetPostCommentsUseCase(),
+    createGetCommentRepliesUseCase()
+  );
+}
+
+export function createNotificationController(): NotificationController {
+  return new NotificationController(
+    createGetNotificationsUseCase(),
+    createGetUnreadCountUseCase(),
+    createMarkAsReadUseCase(),
+    createMarkAllAsReadUseCase()
   );
 }
 

@@ -1,6 +1,7 @@
 import type { PostRepository } from "../../../domain/repositories/PostRepository.js";
 import type { PostWithAuthorOutput } from "../../contracts/post/PostWithAuthorOutput.js";
 import type { LikeRepository } from "../../../domain/repositories/LikeRepository.js";
+import { UnauthorizedError } from "../../../domain/errors/UnauthorizedError.js";
 
 export class GetMyPostsUseCase {
   constructor(private postRepository: PostRepository,
@@ -10,7 +11,7 @@ export class GetMyPostsUseCase {
   async execute(userId: string): Promise<PostWithAuthorOutput[]> {
     
     if (!userId) {
-      throw new Error("Usuario no autenticado");
+      throw new UnauthorizedError("Usuario no autenticado");
     }
 
     const posts = await this.postRepository.findByAuthorId(userId);

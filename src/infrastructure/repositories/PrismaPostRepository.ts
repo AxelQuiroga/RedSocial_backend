@@ -83,9 +83,16 @@ export class PrismaPostRepository implements PostRepository {
   }
 
   async deleteById(id: string) {
-    await this.prisma.post.delete({
-      where: { id }
-    });
+    try {
+      await this.prisma.post.delete({
+        where: { id }
+      });
+    } catch (error) {
+      if (error && typeof error === "object" && "code" in error && error.code === "P2025") {
+        throw new Error("Post no encontrado");
+      }
+      throw error;
+    }
   }
 
   async update(id: string, data: { title?: string; content?: string }) {

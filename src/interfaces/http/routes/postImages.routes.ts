@@ -1,7 +1,6 @@
 ﻿import { Router } from "express";
 import { authMiddleware } from "@middlewares/auth.middleware.js";
 import { validate } from "@middlewares/validate.middleware.js";
-import { PostImagesController } from "../controllers/postImages.controller.js";
 import {
   presignUploadSchema,
   confirmUploadSchema,
@@ -9,22 +8,10 @@ import {
   getPostImagesSchema,
   reorderImagesSchema,
 } from "../validators/postImages.validator.js";
-import {
-  createPresignUploadUseCase,
-  createConfirmUploadUseCase,
-  createDeletePostImageUseCase,
-  createReorderPostImagesUseCase,
-  createGetPostImagesUseCase,
-} from "@infrastructure/di/factory.js";
+import { createPostImagesController } from "@infrastructure/di/factory.js";
 
 const router = Router();
-const controller = new PostImagesController(
-  createPresignUploadUseCase(),
-  createConfirmUploadUseCase(),
-  createDeletePostImageUseCase(),
-  createReorderPostImagesUseCase(),
-  createGetPostImagesUseCase()
-);
+const controller = createPostImagesController();
 
 router.post("/images/presign", authMiddleware, validate(presignUploadSchema), (req, res) => controller.presignUpload(req, res));
 router.post("/:postId/images/confirm", authMiddleware, validate(confirmUploadSchema), (req, res) => controller.confirmUpload(req, res));

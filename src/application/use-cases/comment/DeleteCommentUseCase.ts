@@ -1,5 +1,6 @@
 import type { CommentRepository } from "../../../domain/repositories/CommentRepository.js";
 import type { PostRepository } from "../../../domain/repositories/PostRepository.js";
+import { ForbiddenError } from "../../../domain/errors/ForbiddenError.js";
 
 /**
  * Caso de uso para eliminar un comentario.
@@ -45,7 +46,7 @@ export class DeleteCommentUseCase {
     const isPostAuthor = post && post.authorId === userId;
 
     if (!isCommentAuthor && !isPostAuthor) {
-      throw new Error("No autorizado para eliminar este comentario");
+      throw new ForbiddenError("No autorizado para eliminar este comentario", "DELETE_COMMENT_FORBIDDEN");
     }
 
     // 3. Si es un comentario raíz con respuestas, eliminar las respuestas primero

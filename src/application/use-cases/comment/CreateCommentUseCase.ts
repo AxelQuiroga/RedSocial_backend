@@ -3,6 +3,9 @@ import type { PostRepository } from "../../../domain/repositories/PostRepository
 import type { CreateCommentInput } from "../../contracts/comment/CreateCommentInput.js";
 import type { CommentOutput } from "../../contracts/comment/CommentOutput.js";
 import type { EventBus } from "../../../domain/events/EventBus.js";
+import { BusinessRuleError } from "../../../domain/errors/BusinessRuleError.js";
+import { NotFoundError } from "../../../domain/errors/NotFoundError.js";
+import { ValidationError } from "../../../domain/errors/ValidationError.js";
 
 /**
  * Caso de uso para crear un comentario o respuesta.
@@ -56,29 +59,29 @@ export class CreateCommentUseCase {
   ): Promise<CommentOutput> {
     // 1. Validar contenido
     if (!data.content || data.content.trim().length === 0) {
-      throw new Error("El contenido es requerido");
+      throw new ValidationError("El contenido es requerido", "CONTENT_REQUIRED");
     }
 
     // 2. Validar post exista
     const post = await this.postRepository.findById(data.postId);
     if (!post) {
-      throw new Error("Post no encontrado");
+      throw new NotFoundError("Post no encontrado", "POST_NOT_FOUND");
     }
 
     // 3. Si es respuesta, validar que el comentario padre exista y pertenezca al mismo post
     if (data.parentId) {
       const parentComment = await this.commentRepository.findById(data.parentId);
       if (!parentComment) {
-        throw new Error("Comentario padre no encontrado");
+        throw new NotFoundError("Comentario padre no encontrado", "PARENT_COMMENT_NOT_FOUND");
       }
 
       if (parentComment.postId !== data.postId) {
-        throw new Error("El comentario padre no pertenece a este post");
+        throw new BusinessRuleError("El comentario padre no pertenece a este post", "PARENT_COMMENT_NOT_IN_POST");
       }
 
       // Opcional: evitar respuestas a respuestas (nesting de 1 nivel)
       if (parentComment.parentId !== null) {
-        throw new Error("No se puede responder a una respuesta");
+        throw new ValidationError("No se puede responder a una respuesta", "NESTED_REPLY_NOT_ALLOWED");
       }
     }
 

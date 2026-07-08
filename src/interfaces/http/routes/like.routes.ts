@@ -1,39 +1,11 @@
 import { Router } from "express";
 import { authMiddleware } from "../../../middlewares/auth.middleware.js";
 import { validate } from "../../../middlewares/validate.middleware.js";
-import { LikeController } from "../controllers/like.controller.js";
-import { LikePostUseCase } from "../../../application/use-cases/like/LikePostUseCase.js";
-import { UnlikePostUseCase } from "../../../application/use-cases/like/UnlikePostUseCase.js";
-import { GetPostLikesCountUseCase } from "../../../application/use-cases/like/GetPostLikesCountUseCase.js";
-import { PrismaLikeRepository } from "../../../infrastructure/repositories/PrismaLikeRepository.js";
-import { PrismaPostRepository } from "../../../infrastructure/repositories/PrismaPostRepository.js";
-import { RetryableLikeRepository } from "../../../infrastructure/repositories/RetryableLikeRepository.js";
-import { RetryablePostRepository } from "../../../infrastructure/repositories/RetryablePostRepository.js";
-import { prisma } from "../../../infrastructure/database/prisma.js";
-import { eventBus } from "../../../config/eventBus.js";
+import { createLikeController } from "../../../infrastructure/di/factory.js";
 import { likePostParamsSchema } from "../validators/like.schema.js";
 
-// Repositorios base
-const prismaLikeRepository = new PrismaLikeRepository(prisma);
-const prismaPostRepository = new PrismaPostRepository(prisma);
-
-// Decoradores (Retries)
-const likeRepository = new RetryableLikeRepository(prismaLikeRepository, prismaPostRepository);
-const postRepository = new RetryablePostRepository(prismaPostRepository);
-
-// Use Cases
-const likePostUseCase = new LikePostUseCase(likeRepository, postRepository, eventBus);
-const unlikePostUseCase = new UnlikePostUseCase(likeRepository, postRepository, eventBus);
-const getPostLikesCountUseCase = new GetPostLikesCountUseCase(likeRepository);
-
-// Controller
-const likeController = new LikeController(
-  likePostUseCase,
-  unlikePostUseCase,
-  getPostLikesCountUseCase
-);
-
 const router = Router();
+const likeController = createLikeController();
 
 /**
  * POST /posts/:id/like

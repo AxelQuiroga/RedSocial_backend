@@ -1,6 +1,7 @@
 import type { PostRepository } from "../../../domain/repositories/PostRepository.js";
 import type { PostWithAuthorOutput } from "../../contracts/post/PostWithAuthorOutput.js";
 import type { LikeRepository } from "../../../domain/repositories/LikeRepository.js";
+import { ValidationError } from "../../../domain/errors/ValidationError.js";
 
 /**
  * Caso de uso para obtener posts públicos de un usuario específico.
@@ -30,7 +31,7 @@ export class GetPostsByUserUseCase {
     limit: number = 10
   ): Promise<{ data: PostWithAuthorOutput[]; total: number }> {
     if (!userId) {
-      throw new Error("ID de usuario requerido");
+      throw new ValidationError("ID de usuario requerido", "USER_ID_REQUIRED");
     }
 
     // Validar parámetros de paginación

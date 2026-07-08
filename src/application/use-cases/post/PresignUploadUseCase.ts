@@ -2,6 +2,8 @@
 import type { PresignUploadOutput, PresignedUpload } from "@application/contracts/post/PresignUploadOutput.js";
 import type { StorageService } from "@domain/services/StorageService.js";
 import type { UserRepository } from "@domain/repositories/UserRepository.js";
+import { NotFoundError } from "@domain/errors/NotFoundError.js";
+import { ValidationError } from "@domain/errors/ValidationError.js";
 import { randomUUID } from "node:crypto";
 import { env } from "@config/env.js";
 
@@ -13,18 +15,18 @@ export class PresignUploadUseCase {
 
   async execute(userId: string, input: PresignUploadInput): Promise<PresignUploadOutput> {
     const user = await this.userRepo.findById(userId);
-    if (!user) throw new Error("Usuario no encontrado");
+    if (!user) throw new NotFoundError("Usuario no encontrado", "USER_NOT_FOUND");
 
     if (input.files.length > env.IMAGE_MAX_PER_POST) {
-      throw new Error(`Máximo ${env.IMAGE_MAX_PER_POST} imágenes por post`);
+      throw new ValidationError(`Máximo ${env.IMAGE_MAX_PER_POST} imágenes por post`, "MAX_IMAGES_EXCEEDED");
     }
 
     const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
     const maxSize = env.IMAGE_MAX_SIZE_MB * 1024 * 1024;
 
     for (const file of input.files) {
-      if (!allowedTypes.includes(file.type)) throw new Error(`Tipo no permitido: ${file.type}`);
-      if (file.size > maxSize) throw new Error(`Archivo ${file.name} supera ${env.IMAGE_MAX_SIZE_MB}MB`);
+      if (!allowedTypes.includes(file.type)) throw new ValidationError(`Tipo no permitido: ${file.type}`, "FILE_TYPE_NOT_ALLOWED");
+      if (file.size > maxSize) throw new ValidationError(`Archivo ${file.name} supera ${env.IMAGE_MAX_SIZE_MB}MB`, "FILE_SIZE_EXCEEDED");
     }
 
     const uploads: PresignedUpload[] = [];

@@ -1,5 +1,4 @@
 import { Router } from "express";
-import { UserController } from "../controllers/user.controllers.js";
 import { authMiddleware } from "../../../middlewares/auth.middleware.js";
 import { validate } from "../../../middlewares/validate.middleware.js";
 import {
@@ -8,25 +7,10 @@ import {
   updateProfileSchema,
   publicProfileSchema
 } from "../validators/user.validator.js";
-import { PrismaUserRepository } from "../../../infrastructure/repositories/PrismaUserRepository.js";
-import { prisma } from "../../../infrastructure/database/prisma.js";
-import { RegisterUserUseCase } from "../../../application/use-cases/user/RegisterUserUseCase.js";
-import { LoginUserUseCase } from "../../../application/use-cases/user/LoginUserUseCase.js";
-import { GetMyProfileUseCase } from "../../../application/use-cases/user/GetMyProfileUseCase.js";
-import { UpdateUserProfileUseCase } from "../../../application/use-cases/user/UpdateUserProfileUseCase.js"; 
-import { GetUserPublicProfileUseCase } from "../../../application/use-cases/user/GetUserPublicProfileUseCase.js";
-
+import { createUserController } from "../../../infrastructure/di/factory.js";
 
 const router = Router();
-const userRepo = new PrismaUserRepository(prisma);
-
-const controller = new UserController(
-  new RegisterUserUseCase(userRepo),
-  new LoginUserUseCase(userRepo),
-  new GetMyProfileUseCase(userRepo),
-  new UpdateUserProfileUseCase(userRepo),
-  new GetUserPublicProfileUseCase(userRepo)
-);
+const controller = createUserController();
 
 
 router.get("/me", authMiddleware, (req, res) => controller.me(req, res));

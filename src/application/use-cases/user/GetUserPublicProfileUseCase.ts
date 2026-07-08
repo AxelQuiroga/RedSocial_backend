@@ -1,18 +1,20 @@
 import type { UserRepository } from "../../../domain/repositories/UserRepository.js";
 import type { UserPublicProfileOutput } from "../../contracts/user/UserPublicProfileOutput.js";
+import { NotFoundError } from "../../../domain/errors/NotFoundError.js";
+import { ValidationError } from "../../../domain/errors/ValidationError.js";
 
 export class GetUserPublicProfileUseCase {
   constructor(private userRepository: UserRepository) {}
 
   async execute(username: string): Promise<UserPublicProfileOutput> {
     if (!username) {
-      throw new Error("Username requerido");
+      throw new ValidationError("Username requerido", "USERNAME_REQUIRED");
     }
 
     const user = await this.userRepository.findByUsername(username);
 
     if (!user) {
-      throw new Error("Usuario no encontrado");
+      throw new NotFoundError("Usuario no encontrado", "USER_NOT_FOUND");
     }
 
     return {

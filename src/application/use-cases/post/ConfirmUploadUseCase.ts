@@ -4,6 +4,8 @@ import type { PostImage } from "@domain/entities/PostImage.js";
 import type { StorageService } from "@domain/services/StorageService.js";
 import type { ImageProcessingService } from "@domain/services/ImageProcessingService.js";
 import type { PostImageRepository } from "@domain/repositories/PostImageRepository.js";
+import { NotFoundError } from "@domain/errors/NotFoundError.js";
+import { ValidationError } from "@domain/errors/ValidationError.js";
 import { randomUUID } from "node:crypto";
 
 export class ConfirmUploadUseCase {
@@ -22,12 +24,12 @@ export class ConfirmUploadUseCase {
       const { tempKey } = imageInput;
 
       const object = await this.storage.getObject(tempKey);
-      if (!object) throw new Error(`Archivo temporal no encontrado: ${tempKey}`);
+      if (!object) throw new NotFoundError(`Archivo temporal no encontrado`, "TEMP_FILE_NOT_FOUND");
 
       const validation = await this.imageProcessor.validateImage(object);
       if (!validation.valid) {
         await this.storage.deleteObject(tempKey);
-        throw new Error(validation.error);
+        throw new ValidationError(validation.error ?? "Error de validación de imagen", "IMAGE_VALIDATION_FAILED");
       }
 
       const processed = await this.imageProcessor.processToWebP(object);

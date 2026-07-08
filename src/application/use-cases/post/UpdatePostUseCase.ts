@@ -1,6 +1,9 @@
 import type { PostRepository } from "../../../domain/repositories/PostRepository.js";
 import type { UpdatePostInput } from "../../contracts/post/UpdatePostInput.js";
 import type { PostOutput } from "../../contracts/post/PostOutput.js";
+import { ForbiddenError } from "../../../domain/errors/ForbiddenError.js";
+import { NotFoundError } from "../../../domain/errors/NotFoundError.js";
+import { ValidationError } from "../../../domain/errors/ValidationError.js";
 
 /**
  * Caso de uso para actualizar un post existente.
@@ -47,23 +50,23 @@ export class UpdatePostUseCase {
     // 1. Buscar post
     const post = await this.postRepository.findById(postId);
     if (!post) {
-      throw new Error("Post no encontrado");
+      throw new NotFoundError("Post no encontrado", "POST_NOT_FOUND");
     }
 
     // 2. Verificar autoría (autorización de negocio)
     if (post.authorId !== userId) {
-      throw new Error("No autorizado para editar este post");
+      throw new ForbiddenError("No autorizado para editar este post", "UPDATE_POST_FORBIDDEN");
     }
 
     // 3. Validar que al menos haya un campo para actualizar
     if (!data.title && !data.content) {
-      throw new Error("Debe proporcionar al menos título o contenido para actualizar");
+      throw new ValidationError("Debe proporcionar al menos título o contenido para actualizar", "NO_POST_DATA_TO_UPDATE");
     }
 
     // 4. Actualizar en la base de datos
     const updatedPost = await this.postRepository.update(postId, data);
     if (!updatedPost) {
-      throw new Error("Error al actualizar el post");
+      throw new NotFoundError("Post no encontrado", "POST_NOT_FOUND");
     }
 
     return {

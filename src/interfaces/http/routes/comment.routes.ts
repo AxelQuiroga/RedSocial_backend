@@ -2,38 +2,15 @@ import { Router } from "express";
 import { authMiddleware } from "../../../middlewares/auth.middleware.js";
 import { validate } from "../../../middlewares/validate.middleware.js";
 import { commentUpdateRateLimit } from "../../../middlewares/rate-limit.middleware.js";
-import { CommentController } from "../controllers/comment.controller.js";
-import { UpdateCommentUseCase } from "../../../application/use-cases/comment/UpdateCommentUseCase.js";
-import { DeleteCommentUseCase } from "../../../application/use-cases/comment/DeleteCommentUseCase.js";
-import { GetCommentRepliesUseCase } from "../../../application/use-cases/comment/GetCommentRepliesUseCase.js";
-import { PrismaCommentRepository } from "../../../infrastructure/repositories/PrismaCommentRepository.js";
-import { PrismaPostRepository } from "../../../infrastructure/repositories/PrismaPostRepository.js";
-import { prisma } from "../../../infrastructure/database/prisma.js";
+import { createCommentController } from "../../../infrastructure/di/factory.js";
 import {
   commentIdParamsSchema,
   updateCommentSchema,
   paginationQuerySchema
 } from "../validators/comment.schema.js";
 
-// Repositorios
-const commentRepository = new PrismaCommentRepository(prisma);
-const postRepository = new PrismaPostRepository(prisma);
-
-// Use Cases (solo para rutas de comentarios individuales)
-const updateCommentUseCase = new UpdateCommentUseCase(commentRepository);
-const deleteCommentUseCase = new DeleteCommentUseCase(commentRepository, postRepository);
-const getCommentRepliesUseCase = new GetCommentRepliesUseCase(commentRepository);
-
-// Controller
-const commentController = new CommentController(
-  {} as any, // create - no usado aquí
-  updateCommentUseCase,
-  deleteCommentUseCase,
-  {} as any, // getByPost - no usado aquí
-  getCommentRepliesUseCase
-);
-
 const router = Router();
+const commentController = createCommentController();
 
 /**
  * PUT /comments/:id

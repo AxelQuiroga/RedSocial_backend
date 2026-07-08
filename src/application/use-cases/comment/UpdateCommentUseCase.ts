@@ -1,6 +1,9 @@
 import type { CommentRepository } from "../../../domain/repositories/CommentRepository.js";
 import type { UpdateCommentInput } from "../../contracts/comment/UpdateCommentInput.js";
 import type { CommentOutput } from "../../contracts/comment/CommentOutput.js";
+import { ForbiddenError } from "../../../domain/errors/ForbiddenError.js";
+import { NotFoundError } from "../../../domain/errors/NotFoundError.js";
+import { ValidationError } from "../../../domain/errors/ValidationError.js";
 
 /**
  * Caso de uso para actualizar un comentario.
@@ -42,17 +45,17 @@ export class UpdateCommentUseCase {
     // 1. Buscar el comentario
     const comment = await this.commentRepository.findById(commentId);
     if (!comment) {
-      throw new Error("Comentario no encontrado");
+      throw new NotFoundError("Comentario no encontrado", "COMMENT_NOT_FOUND");
     }
 
     // 2. Verificar autorización (solo el autor puede editar)
     if (comment.authorId !== userId) {
-      throw new Error("No autorizado para editar este comentario");
+      throw new ForbiddenError("No autorizado para editar este comentario", "UPDATE_COMMENT_FORBIDDEN");
     }
 
     // 3. Validar nuevo contenido
     if (!data.content || data.content.trim().length === 0) {
-      throw new Error("El contenido es requerido");
+      throw new ValidationError("El contenido es requerido", "CONTENT_REQUIRED");
     }
 
     // 4. Actualizar
@@ -62,7 +65,7 @@ export class UpdateCommentUseCase {
     );
 
     if (!updated) {
-      throw new Error("Error al actualizar el comentario");
+      throw new NotFoundError("Comentario no encontrado", "COMMENT_NOT_FOUND");
     }
 
     // 5. Construir output

@@ -3,6 +3,8 @@ import type { PostRepository } from "../../../domain/repositories/PostRepository
 import type { EventBus } from "../../../domain/events/EventBus.js";
 import type { LikePostInput } from "../../contracts/like/LikePostInput.js";
 import type { LikeOutput } from "../../contracts/like/LikeOutput.js";
+import { ConflictError } from "../../../domain/errors/ConflictError.js";
+import { NotFoundError } from "../../../domain/errors/NotFoundError.js";
 
 /**
  * Caso de uso para dar like a un post.
@@ -42,13 +44,13 @@ export class LikePostUseCase {
     // 1. Validar que el post exista (el repo Retryable ya maneja el retardo si es nuevo)
     const post = await this.postRepository.findById(data.postId);
     if (!post) {
-      throw new Error("Post no encontrado");
+      throw new NotFoundError("Post no encontrado", "POST_NOT_FOUND");
     }
 
     // 2. Validar si ya existe el like
     const alreadyLiked = await this.likeRepository.exists(userId, data.postId);
     if (alreadyLiked) {
-      throw new Error("Ya has dado like a este post");
+      throw new ConflictError("Ya has dado like a este post", "LIKE_ALREADY_EXISTS");
     }
 
     // 3. Crear el like (el repo Retryable maneja los errores de FK transitorios)

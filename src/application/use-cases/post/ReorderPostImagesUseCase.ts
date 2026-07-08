@@ -1,6 +1,8 @@
 ﻿import type { ReorderPostImagesInput } from "@application/contracts/post/ReorderPostImagesInput.js";
 import type { PostImageRepository } from "@domain/repositories/PostImageRepository.js";
 import type { PostRepository } from "@domain/repositories/PostRepository.js";
+import { ForbiddenError } from "@domain/errors/ForbiddenError.js";
+import { NotFoundError } from "@domain/errors/NotFoundError.js";
 
 export class ReorderPostImagesUseCase {
   constructor(
@@ -10,8 +12,8 @@ export class ReorderPostImagesUseCase {
 
   async execute(userId: string, input: ReorderPostImagesInput): Promise<void> {
     const post = await this.postRepo.findById(input.postId);
-    if (!post) throw new Error("Post no encontrado");
-    if (post.authorId !== userId) throw new Error("No autorizado");
+    if (!post) throw new NotFoundError("Post no encontrado", "POST_NOT_FOUND");
+    if (post.authorId !== userId) throw new ForbiddenError("No autorizado para reordenar imágenes", "REORDER_IMAGES_FORBIDDEN");
 
     await this.imageRepo.reorder(
       input.postId,

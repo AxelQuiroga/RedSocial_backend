@@ -2,6 +2,7 @@ import type { PostRepository } from "../../../domain/repositories/PostRepository
 import type { EventBus } from "../../../domain/events/EventBus.js";
 import type { CreatePostInput } from "../../contracts/post/CreatePostInput.js";
 import type { PostOutput } from "../../contracts/post/PostOutput.js";
+import { ValidationError } from "../../../domain/errors/ValidationError.js";
 
 /**
  * Caso de uso para crear un nuevo post en la red social.
@@ -47,16 +48,16 @@ export class CreatePostUseCase {
 
     // Validar existencia
     if (!data.title || !data.content) {
-      throw new Error("Faltan campos obligatorios");
+      throw new ValidationError("Faltan campos obligatorios", "MISSING_REQUIRED_FIELDS");
     }
 
     //  Validar contenido
     if (data.title.length < 3) {
-      throw new Error("El título es muy corto");
+      throw new ValidationError("El título es muy corto", "TITLE_TOO_SHORT");
     }
 
     if (data.content.length < 10) {
-      throw new Error("El contenido es muy corto");
+      throw new ValidationError("El contenido es muy corto", "CONTENT_TOO_SHORT");
     }
 
     //  Crear post

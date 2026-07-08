@@ -1,6 +1,8 @@
 import type { UserRepository } from "../../../domain/repositories/UserRepository.js";
 import type { UpdateProfileInput } from "../../contracts/user/UpdateProfileInput.js";
 import type { UserPrivateProfileOutput } from "../../contracts/user/UserPrivateProfileOutput.js";
+import { ConflictError } from "../../../domain/errors/ConflictError.js";
+import { ValidationError } from "../../../domain/errors/ValidationError.js";
 
 export class UpdateUserProfileUseCase {
   constructor(private userRepository: UserRepository) {}
@@ -11,14 +13,14 @@ export class UpdateUserProfileUseCase {
   ): Promise<UserPrivateProfileOutput> {
     // Guard extra por si algo pasa (Zod ya lo valida)
     if (Object.keys(data).length === 0) {
-      throw new Error("No hay datos para actualizar");
+      throw new ValidationError("No hay datos para actualizar", "NO_DATA_TO_UPDATE");
     }
 
     // Duplicado email (solo si viene y no es null)
     if (data.email != null) {
       const existingUser = await this.userRepository.findByEmail(data.email);
       if (existingUser && existingUser.id !== userId) {
-        throw new Error("El email ya está en uso");
+        throw new ConflictError("El email ya está en uso", "EMAIL_IN_USE");
       }
     }
 
@@ -26,7 +28,7 @@ export class UpdateUserProfileUseCase {
     if (data.username != null) {
       const existingUser = await this.userRepository.findByUsername(data.username);
       if (existingUser && existingUser.id !== userId) {
-        throw new Error("El username ya está en uso");
+        throw new ConflictError("El username ya está en uso", "USERNAME_IN_USE");
       }
     }
 

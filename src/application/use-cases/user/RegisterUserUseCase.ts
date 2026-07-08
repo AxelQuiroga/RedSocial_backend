@@ -1,5 +1,6 @@
 import type { RegisterUserInput } from "../../contracts/user/RegisterUserInput.js";
 import type { UserRepository } from "../../../domain/repositories/UserRepository.js";
+import { ConflictError } from "../../../domain/errors/ConflictError.js";
 import bcrypt from "bcrypt";
 import type { UserOutput } from "../../contracts/user/UserOutput.js";
 import { env } from "../../../config/env.js";
@@ -13,7 +14,7 @@ export class RegisterUserUseCase {
     const existingUser = await this.userRepository.findByEmail(data.email);
 
     if (existingUser) {
-      throw new Error("El usuario ya existe");
+      throw new ConflictError("El usuario ya existe", "USER_ALREADY_EXISTS");
     }
 
     //  Hash password

@@ -1,5 +1,6 @@
 import type { CommentRepository } from "../../../domain/repositories/CommentRepository.js";
 import type { PaginatedCommentsOutput } from "../../contracts/comment/PaginatedCommentsOutput.js";
+import { NotFoundError } from "../../../domain/errors/NotFoundError.js";
 
 /**
  * Caso de uso para obtener las respuestas de un comentario.
@@ -38,7 +39,7 @@ export class GetCommentRepliesUseCase {
     // Opcional: validar que el comentario padre exista
     const parent = await this.commentRepository.findById(parentId);
     if (!parent) {
-      throw new Error("Comentario padre no encontrado");
+      throw new NotFoundError("Comentario padre no encontrado", "PARENT_COMMENT_NOT_FOUND");
     }
 
     const { comments, total } =
