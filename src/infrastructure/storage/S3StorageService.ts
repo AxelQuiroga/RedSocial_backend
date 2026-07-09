@@ -6,19 +6,26 @@ import type { Readable } from "stream";
 
 export class S3StorageService implements StorageService {
   private client: S3Client;
+  private presignClient: S3Client;
   private bucket: string;
   private publicUrl: string;
 
   constructor() {
-    this.client = new S3Client({
-      endpoint: env.STORAGE_ENDPOINT,
+    const s3Config = {
       region: env.STORAGE_REGION,
       credentials: {
         accessKeyId: env.STORAGE_ACCESS_KEY,
         secretAccessKey: env.STORAGE_SECRET_KEY,
       },
       forcePathStyle: true, // Necesario para MinIO
-    });
+    };
+
+    // Cliente interno: usa el hostname de Docker para operaciones del backend
+    this.client = new S3Client({ ...s3Config, endpoint: env.STORAGE_ENDPOINT });
+
+    // Cliente para presigned URLs: usa un endpoint accesible desde el navegador
+    this.presignClient = new S3Client({ ...s3Config, endpoint: env.STORAGE_PUBLIC_ENDPOINT });
+
     this.bucket = env.STORAGE_BUCKET;
     this.publicUrl = env.STORAGE_PUBLIC_URL;
   }
@@ -29,7 +36,7 @@ export class S3StorageService implements StorageService {
       Key: key,
       ContentType: contentType,
     });
-    const url = await getSignedUrl(this.client, command, { expiresIn: expiresInSec });
+    const url = await getSignedUrl(this.presignClient, command, { expiresIn: expiresInSec });
     return { url };
   }
 

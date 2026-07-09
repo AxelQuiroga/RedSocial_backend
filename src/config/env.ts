@@ -31,6 +31,7 @@ export const env = {
   get STORAGE_BUCKET() { return getEnv("STORAGE_BUCKET"); },
   get STORAGE_REGION() { return getEnv("STORAGE_REGION"); },
   get STORAGE_PUBLIC_URL() { return getEnv("STORAGE_PUBLIC_URL"); },
+  get STORAGE_PUBLIC_ENDPOINT() { return getEnv("STORAGE_PUBLIC_ENDPOINT"); },
   get IMAGE_MAX_SIZE_MB() { return getNumberEnv("IMAGE_MAX_SIZE_MB"); },
   get IMAGE_MAX_DIMENSION() { return getNumberEnv("IMAGE_MAX_DIMENSION"); },
   get IMAGE_MAX_PER_POST() { return getNumberEnv("IMAGE_MAX_PER_POST"); },
