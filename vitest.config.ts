@@ -8,7 +8,11 @@ export default defineConfig({
     testTimeout: 30000,
     globalSetup: ['./tests/global-setup.ts'],
     setupFiles: [],
-    singleThread: true,
+    fileParallelism: false,
+    sequence: {
+      concurrent: false,
+      hooks: 'stack',
+    },
     env: {
       JWT_SECRET: 'test-secret-key-for-unit-tests',
       BCRYPT_SALT_ROUNDS: '4',
