@@ -4,6 +4,8 @@ import type { ConfirmUploadUseCase } from "@application/use-cases/post/ConfirmUp
 import type { DeletePostImageUseCase } from "@application/use-cases/post/DeletePostImageUseCase.js";
 import type { ReorderPostImagesUseCase } from "@application/use-cases/post/ReorderPostImagesUseCase.js";
 import type { GetPostImagesUseCase } from "@application/use-cases/post/GetPostImagesUseCase.js";
+import type { PresignUploadInput } from "@application/contracts/post/PresignUploadInput.js";
+import type { ConfirmUploadInput } from "@application/contracts/post/ConfirmUploadInput.js";
 
 export class PostImagesController {
   constructor(
@@ -15,39 +17,50 @@ export class PostImagesController {
   ) {}
 
   async presignUpload(req: Request, res: Response) {
-    const userId = req.user!.userId;
-    const result = await this.presign.execute(userId, req.body);
+    if (!req.user?.userId) {
+      res.status(401).json({ error: "No autorizado" });
+      return;
+    }
+    const input = res.locals.validated.body as PresignUploadInput;
+    const result = await this.presign.execute(req.user.userId, input);
     res.json(result);
   }
 
   async confirmUpload(req: Request, res: Response) {
-    const userId = req.user!.userId;
-    const postId = req.params.postId;
-    if (!postId || Array.isArray(postId)) throw new Error("postId inválido");
-    const result = await this.confirm.execute(postId, userId, req.body);
+    if (!req.user?.userId) {
+      res.status(401).json({ error: "No autorizado" });
+      return;
+    }
+    const { postId } = res.locals.validated.params as { postId: string };
+    const input = res.locals.validated.body as ConfirmUploadInput;
+    const result = await this.confirm.execute(postId, req.user.userId, input);
     res.status(201).json(result);
   }
 
   async getPostImages(req: Request, res: Response) {
-    const postId = req.params.postId;
-    if (!postId || Array.isArray(postId)) throw new Error("postId inválido");
+    const { postId } = res.locals.validated.params as { postId: string };
     const result = await this.getImages.execute(postId);
     res.json(result);
   }
 
   async deleteImage(req: Request, res: Response) {
-    const userId = req.user!.userId;
-    const imageId = req.params.imageId;
-    if (!imageId || Array.isArray(imageId)) throw new Error("imageId inválido");
-    await this.deleteImg.execute(imageId, userId);
+    if (!req.user?.userId) {
+      res.status(401).json({ error: "No autorizado" });
+      return;
+    }
+    const { imageId } = res.locals.validated.params as { imageId: string };
+    await this.deleteImg.execute(imageId, req.user.userId);
     res.status(204).send();
   }
 
   async reorderImages(req: Request, res: Response) {
-    const userId = req.user!.userId;
-    const postId = req.params.postId;
-    if (!postId || Array.isArray(postId)) throw new Error("postId inválido");
-    await this.reorder.execute(userId, { postId, images: req.body.images });
+    if (!req.user?.userId) {
+      res.status(401).json({ error: "No autorizado" });
+      return;
+    }
+    const { postId } = res.locals.validated.params as { postId: string };
+    const body = res.locals.validated.body as { images: { imageId: string; order: number }[] };
+    await this.reorder.execute(req.user.userId, { postId, images: body.images });
     res.json({ ok: true });
   }
 }

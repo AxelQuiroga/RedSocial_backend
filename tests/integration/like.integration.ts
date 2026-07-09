@@ -12,7 +12,7 @@ import { NotificationService } from '../../src/application/services/Notification
 import { InMemoryEventBus } from '../mocks/InMemoryEventBus';
 import { RetryableLikeRepository } from '../../src/infrastructure/repositories/RetryableLikeRepository.js';
 import { RetryablePostRepository } from '../../src/infrastructure/repositories/RetryablePostRepository.js';
-import { cleanupDb, prisma } from '../setup.js';
+import { cleanupDb, prisma } from '../setup';
 import { createUser, createPost, createLike } from '../factories.js';
 
 let eventBus: InMemoryEventBus;

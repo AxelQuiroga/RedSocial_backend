@@ -7,7 +7,7 @@ export default defineConfig({
     hookTimeout: 30000,
     testTimeout: 30000,
     globalSetup: ['./tests/global-setup.ts'],
-    setupFiles: ['./tests/setup.ts'],
+    setupFiles: [],
     singleThread: true,
     env: {
       JWT_SECRET: 'test-secret-key-for-unit-tests',

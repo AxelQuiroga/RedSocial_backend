@@ -1,20 +1,14 @@
-import { PrismaClient } from '@prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg';
+import { prisma, sql } from './db.js';
 
-// Usa la DATABASE_URL que global-setup.ts ya configuró
-export const prisma = new PrismaClient({
-  adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL })
-});
+// Re-export para test files (misma instancia singleton vía globalThis)
+export { prisma };
 
-// Cleanup después de cada test - borrar en orden correcto con espera explícita
+// Cleanup usando SQL directo (evita bugs del PrismaPg adapter)
 export async function cleanupDb() {
-  // Orden: hijos primero, luego padres
-  await prisma.notification.deleteMany();
-  await prisma.like.deleteMany();
-  await prisma.comment.deleteMany();
-  await prisma.post.deleteMany();
-  await prisma.user.deleteMany();
-  
-  // Esperar explícitamente a que todo se complete
-  await prisma.$queryRaw`SELECT 1`;
+  await sql(`DELETE FROM "Notification"`);
+  await sql(`DELETE FROM "Like"`);
+  await sql(`DELETE FROM "Comment"`);
+  await sql(`DELETE FROM "PostImage"`);
+  await sql(`DELETE FROM "Post"`);
+  await sql(`DELETE FROM "User"`);
 }
