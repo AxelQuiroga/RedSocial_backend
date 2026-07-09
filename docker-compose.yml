@@ -1,4 +1,49 @@
+# ==============================================================================
+# docker-compose.yml — Red Social Full Stack
+# Orquesta: PostgreSQL + RabbitMQ + MinIO (S3) + Backend (Express) + Frontend (Vite)
+# ==============================================================================
+# Uso:
+#   docker compose up -d              # Levantar todo
+#   docker compose down               # Bajar todo
+#   docker compose logs -f backend    # Ver logs del backend
+#   docker compose run --rm migration # Re-ejecutar migraciones
+# ==============================================================================
+
 services:
+  # ─── PostgreSQL ─────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: redsocial
+      POSTGRES_PASSWORD: redsocial
+      POSTGRES_DB: redsocial
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U redsocial"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ─── RabbitMQ ───────────────────────────────────────────────────────────────
+  rabbitmq:
+    image: rabbitmq:4-alpine
+    ports:
+      - "5672:5672"   # AMQP
+      - "15672:15672" # Management UI
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ─── MinIO (S3-compatible storage) ──────────────────────────────────────────
   minio:
     image: minio/minio:latest
     command: server /data --console-address ":9001"
@@ -8,7 +53,6 @@ services:
     environment:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin
-      MINIO_API_CORS_ALLOW_ORIGIN: "http://localhost:5173"
     volumes:
       - minio_data:/data
     healthcheck:
@@ -16,9 +60,85 @@ services:
       interval: 30s
       timeout: 20s
       retries: 3
+    restart: unless-stopped
+
+  # ─── MinIO Init (crear bucket una sola vez) ────────────────────────────────
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        /usr/bin/mc alias set myminio http://minio:9000 minioadmin minioadmin
+        /usr/bin/mc mb myminio/redsocial || true
+        /usr/bin/mc anonymous set public myminio/redsocial
+        echo "MinIO bucket 'redsocial' ready"
+    restart: "no"
+
+  # ─── Database Migration (one-shot) ─────────────────────────────────────────
+  migration:
+    build:
+      context: .
+      target: build
+    command: sh -c "npx prisma migrate deploy"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://redsocial:redsocial@postgres:5432/redsocial
+    restart: "no"
+
+  # ─── Backend API ────────────────────────────────────────────────────────────
+  backend:
+    build: .
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      migration:
+        condition: service_completed_successfully
+      minio-init:
+        condition: service_completed_successfully
+    environment:
+      PORT: "3000"
+      DATABASE_URL: postgresql://redsocial:redsocial@postgres:5432/redsocial
+      JWT_SECRET: change-me-in-production
+      NODE_ENV: production
+      FRONTEND_URL: http://localhost:5173
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      BCRYPT_SALT_ROUNDS: "10"
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-your-gemini-api-key}
+      STORAGE_ENDPOINT: http://minio:9000
+      STORAGE_ACCESS_KEY: minioadmin
+      STORAGE_SECRET_KEY: minioadmin
+      STORAGE_BUCKET: redsocial
+      STORAGE_REGION: us-east-1
+      STORAGE_PUBLIC_URL: http://localhost:9000/redsocial
+      IMAGE_MAX_SIZE_MB: "5"
+      IMAGE_MAX_DIMENSION: "3840"
+      IMAGE_MAX_PER_POST: "5"
+      IMAGE_QUALITY: "85"
+    restart: unless-stopped
+
+  # ─── Frontend (Vite + nginx) ────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ../front
+      args:
+        VITE_API_URL: http://localhost:3000
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
 
 volumes:
+  pgdata:
+  rabbitmq_data:
   minio_data:
-
-# docker compose up -d minio 
-# docker compose down
