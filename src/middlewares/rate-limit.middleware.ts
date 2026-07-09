@@ -19,7 +19,7 @@ export const commentCreateRateLimit = rateLimit({
     error: "Demasiados comentarios creados. Por favor espera un minuto antes de continuar."
   },
   // Usar IP como identificador con soporte IPv6
-  keyGenerator: ipKeyGenerator
+  keyGenerator: (req) => ipKeyGenerator(req.ip ?? "unknown")
 });
 
 /**
@@ -38,7 +38,7 @@ export const commentUpdateRateLimit = rateLimit({
   message: {
     error: "Demasiadas ediciones. Por favor espera un minuto antes de continuar."
   },
-  keyGenerator: ipKeyGenerator
+  keyGenerator: (req) => ipKeyGenerator(req.ip ?? "unknown")
 });
 
 /**
@@ -56,5 +56,5 @@ export const likeRateLimit = rateLimit({
   message: {
     error: "Demasiadas operaciones de like. Por favor espera un minuto antes de continuar."
   },
-  keyGenerator: ipKeyGenerator
+  keyGenerator: (req) => ipKeyGenerator(req.ip ?? "unknown")
 });
