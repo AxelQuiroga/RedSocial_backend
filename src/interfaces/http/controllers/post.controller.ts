@@ -5,6 +5,7 @@ import { GetMyPostsUseCase } from "../../../application/use-cases/post/GetMyPost
 import { DeletePostUseCase } from "../../../application/use-cases/post/DeletePostUseCase.js";
 import { UpdatePostUseCase } from "../../../application/use-cases/post/UpdatePostUseCase.js";
 import { GetPostsByUserUseCase } from "../../../application/use-cases/post/GetPostsByUserUseCase.js";
+import { GetPostByIdUseCase } from "../../../application/use-cases/post/GetPostByIdUseCase.js";
 import { GetUserPublicProfileUseCase } from "../../../application/use-cases/user/GetUserPublicProfileUseCase.js";
 import type { CreatePostRequest } from "../dtos/post/CreatePostRequest.js";
 import type { UpdatePostRequest } from "../dtos/post/UpdatePostRequest.js";
@@ -24,6 +25,7 @@ export class PostController {
     private deletePostUseCase: DeletePostUseCase,
     private updatePostUseCase: UpdatePostUseCase,
     private getPostsByUserUseCase: GetPostsByUserUseCase,
+    private getPostByIdUseCase: GetPostByIdUseCase,
     private getUserPublicProfileUseCase: GetUserPublicProfileUseCase
   ) { }
 
@@ -83,6 +85,14 @@ export class PostController {
     );
     const post = await this.updatePostUseCase.execute(postId, req.user.userId, data);
     res.json(toPostResponse(post));
+  }
+
+  async getById(req: Request, res: Response) {
+    const { id } = res.locals.validated.params as { id: string };
+    const userId = req.user?.userId;
+
+    const post = await this.getPostByIdUseCase.execute(id, userId);
+    res.json(toPostWithAuthorResponse(post));
   }
 
   async getPostsByUser(req: Request, res: Response) {

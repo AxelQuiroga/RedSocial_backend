@@ -7,7 +7,8 @@ import {
   getPostsSchema,
   updatePostSchema,
   deletePostSchema,
-  getPostsByUserSchema
+  getPostsByUserSchema,
+  getPostByIdSchema
 } from "../validators/post.validator.js";
 
 const router = Router();
@@ -37,6 +38,10 @@ router.delete("/:id", authMiddleware, validate(deletePostSchema), (req, res) =>
 
 router.get("/user/:username", validate(getPostsByUserSchema), (req, res) =>
   postController.getPostsByUser(req, res)
+);
+
+router.get("/:id", validate(getPostByIdSchema), (req, res) =>
+  postController.getById(req, res)
 );
 
 export default router;

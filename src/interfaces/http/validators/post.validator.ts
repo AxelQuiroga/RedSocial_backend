@@ -28,6 +28,10 @@ export const deletePostSchema = {
   params: idParam
 };
 
+export const getPostByIdSchema = {
+  params: idParam
+};
+
 export const getPostsByUserSchema = {
   params: z.object({
     username: z.string().trim().min(3).max(50)

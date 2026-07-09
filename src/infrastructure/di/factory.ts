@@ -35,6 +35,7 @@ import { GetMyPostsUseCase } from "@application/use-cases/post/GetMyPostsUseCase
 import { DeletePostUseCase } from "@application/use-cases/post/DeletePostUseCase.js";
 import { UpdatePostUseCase } from "@application/use-cases/post/UpdatePostUseCase.js";
 import { GetPostsByUserUseCase } from "@application/use-cases/post/GetPostsByUserUseCase.js";
+import { GetPostByIdUseCase } from "@application/use-cases/post/GetPostByIdUseCase.js";
 
 // Application Use Cases — User
 import { RegisterUserUseCase } from "@application/use-cases/user/RegisterUserUseCase.js";
@@ -139,6 +140,10 @@ export function createGetPostsByUserUseCase(): GetPostsByUserUseCase {
   return new GetPostsByUserUseCase(createPostRepository(), createLikeRepository());
 }
 
+export function createGetPostByIdUseCase(): GetPostByIdUseCase {
+  return new GetPostByIdUseCase(createPostRepository(), createLikeRepository());
+}
+
 export function createGetPostLikesCountUseCase(): GetPostLikesCountUseCase {
   return new GetPostLikesCountUseCase(createLikeRepository());
 }
@@ -233,6 +238,7 @@ export function createPostController(): PostController {
     createDeletePostUseCase(),
     createUpdatePostUseCase(),
     createGetPostsByUserUseCase(),
+    createGetPostByIdUseCase(),
     createGetUserPublicProfileUseCase()
   );
 }
