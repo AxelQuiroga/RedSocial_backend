@@ -10,8 +10,6 @@ import { PrismaCommentRepository } from '../../src/infrastructure/repositories/P
 import { NotificationListeners } from '../../src/infrastructure/events/NotificationListeners';
 import { NotificationService } from '../../src/application/services/NotificationService';
 import { InMemoryEventBus } from '../mocks/InMemoryEventBus';
-import { RetryableLikeRepository } from '../../src/infrastructure/repositories/RetryableLikeRepository.js';
-import { RetryablePostRepository } from '../../src/infrastructure/repositories/RetryablePostRepository.js';
 import { cleanupDb, prisma } from '../setup';
 import { createUser, createPost, createLike } from '../factories.js';
 
@@ -25,14 +23,8 @@ beforeEach(async () => {
   await cleanupDb();
   eventBus = new InMemoryEventBus();
   
-  // Repositorios base
-  const prismaLikeRepo = new PrismaLikeRepository(prisma);
-  const prismaPostRepo = new PrismaPostRepository(prisma);
-  
-  // Envolvemos con decoradores de reintentos
-  likeRepo = new RetryableLikeRepository(prismaLikeRepo, prismaPostRepo);
-  postRepo = new RetryablePostRepository(prismaPostRepo);
-  
+  likeRepo = new PrismaLikeRepository(prisma);
+  postRepo = new PrismaPostRepository(prisma);
   commentRepo = new PrismaCommentRepository(prisma);
   notificationRepo = new PrismaNotificationRepository(prisma);
   

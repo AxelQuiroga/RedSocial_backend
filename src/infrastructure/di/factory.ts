@@ -28,10 +28,6 @@ import { PrismaUserRepository } from "@infrastructure/repositories/PrismaUserRep
 import { PrismaCommentRepository } from "@infrastructure/repositories/PrismaCommentRepository.js";
 import { PrismaNotificationRepository } from "@infrastructure/repositories/PrismaNotificationRepository.js";
 
-// Retryable Repositories (para operaciones de escritura concurrentes)
-import { RetryableLikeRepository } from "@infrastructure/repositories/RetryableLikeRepository.js";
-import { RetryablePostRepository } from "@infrastructure/repositories/RetryablePostRepository.js";
-
 // Application Use Cases — Posts
 import { CreatePostUseCase } from "@application/use-cases/post/CreatePostUseCase.js";
 import { GetPostsUseCase } from "@application/use-cases/post/GetPostsUseCase.js";
@@ -147,19 +143,6 @@ export function createGetPostLikesCountUseCase(): GetPostLikesCountUseCase {
   return new GetPostLikesCountUseCase(createLikeRepository());
 }
 
-// ─── Retryable Repositories (para operaciones de escritura concurrente) ───
-
-export function createRetryableLikeRepository(): LikeRepository {
-  return new RetryableLikeRepository(
-    new PrismaLikeRepository(getPrismaClient()),
-    new PrismaPostRepository(getPrismaClient())
-  );
-}
-
-export function createRetryablePostRepository(): PostRepository {
-  return new RetryablePostRepository(new PrismaPostRepository(getPrismaClient()));
-}
-
 // ─── Use Cases: User ───────────────────────────────────────────────────────
 
 export function createRegisterUserUseCase(): RegisterUserUseCase {
@@ -182,14 +165,14 @@ export function createGetUserPublicProfileUseCase(): GetUserPublicProfileUseCase
   return new GetUserPublicProfileUseCase(createUserRepository());
 }
 
-// ─── Use Cases: Like (usan retryable repos por la concurrencia) ────────────
+// ─── Use Cases: Like ───────────────────────────────────────────────────────
 
 export function createLikePostUseCase(): LikePostUseCase {
-  return new LikePostUseCase(createRetryableLikeRepository(), createRetryablePostRepository(), eventBus);
+  return new LikePostUseCase(createLikeRepository(), createPostRepository(), eventBus);
 }
 
 export function createUnlikePostUseCase(): UnlikePostUseCase {
-  return new UnlikePostUseCase(createRetryableLikeRepository(), createRetryablePostRepository(), eventBus);
+  return new UnlikePostUseCase(createLikeRepository(), createPostRepository(), eventBus);
 }
 
 // ─── Use Cases: Comment ────────────────────────────────────────────────────

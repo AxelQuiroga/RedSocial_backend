@@ -41,7 +41,7 @@ export class LikePostUseCase {
    * @throws {Error} "Ya has dado like a este post" - Si el like ya existe
    */
   async execute(userId: string, data: LikePostInput): Promise<LikeOutput> {
-    // 1. Validar que el post exista (el repo Retryable ya maneja el retardo si es nuevo)
+    // 1. Validar que el post exista
     const post = await this.postRepository.findById(data.postId);
     if (!post) {
       throw new NotFoundError("Post no encontrado", "POST_NOT_FOUND");
@@ -53,7 +53,7 @@ export class LikePostUseCase {
       throw new ConflictError("Ya has dado like a este post", "LIKE_ALREADY_EXISTS");
     }
 
-    // 3. Crear el like (el repo Retryable maneja los errores de FK transitorios)
+    // 3. Crear el like
     const like = await this.likeRepository.create(userId, data.postId);
     
     if (!like) {
