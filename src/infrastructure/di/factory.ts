@@ -20,6 +20,7 @@ import type { LikeRepository } from "@domain/repositories/LikeRepository.js";
 import type { UserRepository } from "@domain/repositories/UserRepository.js";
 import type { CommentRepository } from "@domain/repositories/CommentRepository.js";
 import type { NotificationRepository } from "@domain/repositories/NotificationRepository.js";
+import type { FollowRepository } from "@domain/repositories/FollowRepository.js";
 
 // Infrastructure Implementations
 import { PrismaPostRepository } from "@infrastructure/repositories/PrismaPostRepository.js";
@@ -27,6 +28,7 @@ import { PrismaLikeRepository } from "@infrastructure/repositories/PrismaLikeRep
 import { PrismaUserRepository } from "@infrastructure/repositories/PrismaUserRepository.js";
 import { PrismaCommentRepository } from "@infrastructure/repositories/PrismaCommentRepository.js";
 import { PrismaNotificationRepository } from "@infrastructure/repositories/PrismaNotificationRepository.js";
+import { PrismaFollowRepository } from "@infrastructure/repositories/PrismaFollowRepository.js";
 
 // Application Use Cases — Posts
 import { CreatePostUseCase } from "@application/use-cases/post/CreatePostUseCase.js";
@@ -62,6 +64,14 @@ import { GetUnreadCountUseCase } from "@application/use-cases/notification/GetUn
 import { MarkAsReadUseCase } from "@application/use-cases/notification/MarkAsReadUseCase.js";
 import { MarkAllAsReadUseCase } from "@application/use-cases/notification/MarkAllAsReadUseCase.js";
 
+// Application Use Cases — Follow
+import { FollowUserUseCase } from "@application/use-cases/follow/FollowUserUseCase.js";
+import { UnfollowUserUseCase } from "@application/use-cases/follow/UnfollowUserUseCase.js";
+import { GetFollowersUseCase } from "@application/use-cases/follow/GetFollowersUseCase.js";
+import { GetFollowingUseCase } from "@application/use-cases/follow/GetFollowingUseCase.js";
+import { GetFollowCountsUseCase } from "@application/use-cases/follow/GetFollowCountsUseCase.js";
+import { IsFollowingUseCase } from "@application/use-cases/follow/IsFollowingUseCase.js";
+
 // Services
 import { NotificationService } from "@application/services/NotificationService.js";
 import type { AIService } from "@domain/services/AIService.js";
@@ -74,6 +84,7 @@ import { UserController } from "@interfaces/http/controllers/user.controllers.js
 import { LikeController } from "@interfaces/http/controllers/like.controller.js";
 import { CommentController } from "@interfaces/http/controllers/comment.controller.js";
 import { NotificationController } from "@interfaces/http/controllers/notification.controller.js";
+import { FollowController } from "@interfaces/http/controllers/follow.controller.js";
 
 // Events
 import { eventBus } from "@config/eventBus.js";
@@ -113,6 +124,10 @@ export function createCommentRepository(): CommentRepository {
 
 export function createNotificationRepository(): NotificationRepository {
   return new PrismaNotificationRepository(getPrismaClient());
+}
+
+export function createFollowRepository(): FollowRepository {
+  return new PrismaFollowRepository(getPrismaClient());
 }
 
 // Use Cases Factory
@@ -220,6 +235,32 @@ export function createMarkAllAsReadUseCase(): MarkAllAsReadUseCase {
   return new MarkAllAsReadUseCase(createNotificationRepository());
 }
 
+// ─── Use Cases: Follow ──────────────────────────────────────────────────────
+
+export function createFollowUserUseCase(): FollowUserUseCase {
+  return new FollowUserUseCase(createFollowRepository());
+}
+
+export function createUnfollowUserUseCase(): UnfollowUserUseCase {
+  return new UnfollowUserUseCase(createFollowRepository());
+}
+
+export function createGetFollowersUseCase(): GetFollowersUseCase {
+  return new GetFollowersUseCase(createFollowRepository());
+}
+
+export function createGetFollowingUseCase(): GetFollowingUseCase {
+  return new GetFollowingUseCase(createFollowRepository());
+}
+
+export function createGetFollowCountsUseCase(): GetFollowCountsUseCase {
+  return new GetFollowCountsUseCase(createFollowRepository());
+}
+
+export function createIsFollowingUseCase(): IsFollowingUseCase {
+  return new IsFollowingUseCase(createFollowRepository());
+}
+
 // Services Factory
 export function createAIService(): AIService {
   return new GeminiAIService();
@@ -287,6 +328,17 @@ export function createNotificationController(): NotificationController {
     createGetUnreadCountUseCase(),
     createMarkAsReadUseCase(),
     createMarkAllAsReadUseCase()
+  );
+}
+
+export function createFollowController(): FollowController {
+  return new FollowController(
+    createFollowUserUseCase(),
+    createUnfollowUserUseCase(),
+    createGetFollowersUseCase(),
+    createGetFollowingUseCase(),
+    createGetFollowCountsUseCase(),
+    createIsFollowingUseCase()
   );
 }
 

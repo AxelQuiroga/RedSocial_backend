@@ -10,6 +10,7 @@ import notificationRoutes from "./interfaces/http/routes/notification.routes.js"
 import cors from "cors";
 import { env } from "./config/env.js";
 import postImagesRoutes from "./interfaces/http/routes/postImages.routes.js";
+import followRoutes from "./interfaces/http/routes/follow.routes.js";
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.use("/posts", postCommentRoutes); // Rutas de comentarios en posts (POST /:i
 app.use("/comments", commentRoutes); // Rutas de comentarios individuales (PUT /:id, DELETE /:id, GET /:id/replies)
 app.use("/notifications", notificationRoutes); // Rutas de notificaciones (GET /, GET /unread-count, PUT /:id/read, PUT /read-all)
 app.use("/posts", postImagesRoutes); // Rutas de imagenes en posts (POST /:id/images, GET /:id/images)
+app.use("/follow", followRoutes);    // Rutas de follows (POST /:userId/follow, DELETE /:userId/follow, etc.)
 // SIEMPRE al final
 app.use(errorHandler);
 
