@@ -3,6 +3,7 @@ import type { NotificationService } from "../../application/services/Notificatio
 import { CommentCreatedEventSchema } from "../../domain/events/NotificationEvents.js";
 import { LikeCreatedEventSchema, LikeRemovedEventSchema } from "../../domain/events/LikeEvents.js";
 import { PostDeletedEventSchema } from "../../domain/events/PostEvents.js";
+import { FollowCreatedEventSchema } from "../../domain/events/FollowEvents.js";
 
 export class NotificationListeners {
   constructor(
@@ -50,6 +51,16 @@ export class NotificationListeners {
         await this.notificationService.handlePostDeleted(validated.postId);
       } catch (error) {
         console.error('Error al limpiar notificaciones del post:', error);
+      }
+    });
+
+    // Listener: Follow Creado
+    this.eventBus.on('user.followed', async (event) => {
+      try {
+        const validated = FollowCreatedEventSchema.parse(event);
+        await this.notificationService.handleFollowCreated(validated);
+      } catch (error) {
+        console.error('Error al procesar notificación de follow:', error);
       }
     });
   }

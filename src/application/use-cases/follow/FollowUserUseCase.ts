@@ -1,9 +1,11 @@
+import type { EventBus } from "../../../domain/events/EventBus.js";
 import type { FollowRepository } from "../../../domain/repositories/FollowRepository.js";
 import type { FollowUserOutput } from "../../contracts/follow/FollowUserOutput.js";
 
 export class FollowUserUseCase {
   constructor(
-    private followRepository: FollowRepository
+    private followRepository: FollowRepository,
+    private eventBus: EventBus
   ) {}
 
   async execute(followerId: string, followingId: string): Promise<FollowUserOutput> {
@@ -17,6 +19,12 @@ export class FollowUserUseCase {
     }
 
     await this.followRepository.follow(followerId, followingId);
+
+    this.eventBus.emit('user.followed', {
+      type: 'FOLLOW_CREATED',
+      followerId,
+      followingId
+    });
 
     return {
       followerId,

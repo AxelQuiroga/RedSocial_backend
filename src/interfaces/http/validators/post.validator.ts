@@ -32,6 +32,10 @@ export const getPostByIdSchema = {
   params: idParam
 };
 
+export const getFeedSchema = {
+  query: paginationQuery
+};
+
 export const getPostsByUserSchema = {
   params: z.object({
     username: z.string().trim().min(3).max(50)

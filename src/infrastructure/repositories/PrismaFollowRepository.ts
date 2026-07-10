@@ -31,6 +31,25 @@ export class PrismaFollowRepository implements FollowRepository {
     return follow !== null;
   }
 
+  async isFollowingBatch(followerId: string, followingIds: string[]): Promise<Map<string, boolean>> {
+    if (followingIds.length === 0) return new Map();
+
+    const follows = await this.prisma.follow.findMany({
+      where: {
+        followerId,
+        followingId: { in: followingIds }
+      },
+      select: { followingId: true }
+    });
+
+    const followingSet = new Set(follows.map(f => f.followingId));
+    const result = new Map<string, boolean>();
+    for (const id of followingIds) {
+      result.set(id, followingSet.has(id));
+    }
+    return result;
+  }
+
   async getFollowers(userId: string, page: number, limit: number) {
     const skip = (page - 1) * limit;
 

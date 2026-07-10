@@ -8,7 +8,8 @@ import {
   getFollowersSchema,
   getFollowingSchema,
   getFollowCountsSchema,
-  followStatusSchema
+  followStatusSchema,
+  followStatusBatchSchema
 } from "../validators/follow.validator.js";
 
 const router = Router();
@@ -36,6 +37,11 @@ router.get("/:userId/followers", validate(getFollowersSchema), (req, res) =>
 
 router.get("/:userId/following", validate(getFollowingSchema), (req, res) =>
   followController.getFollowing(req, res)
+);
+
+// Batch status (requiere auth)
+router.post("/status/batch", authMiddleware, validate(followStatusBatchSchema), (req, res) =>
+  followController.statusBatch(req, res)
 );
 
 // Counts

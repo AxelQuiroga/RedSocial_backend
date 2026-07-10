@@ -38,6 +38,7 @@ import { DeletePostUseCase } from "@application/use-cases/post/DeletePostUseCase
 import { UpdatePostUseCase } from "@application/use-cases/post/UpdatePostUseCase.js";
 import { GetPostsByUserUseCase } from "@application/use-cases/post/GetPostsByUserUseCase.js";
 import { GetPostByIdUseCase } from "@application/use-cases/post/GetPostByIdUseCase.js";
+import { GetFeedUseCase } from "@application/use-cases/post/GetFeedUseCase.js";
 
 // Application Use Cases — User
 import { RegisterUserUseCase } from "@application/use-cases/user/RegisterUserUseCase.js";
@@ -71,6 +72,7 @@ import { GetFollowersUseCase } from "@application/use-cases/follow/GetFollowersU
 import { GetFollowingUseCase } from "@application/use-cases/follow/GetFollowingUseCase.js";
 import { GetFollowCountsUseCase } from "@application/use-cases/follow/GetFollowCountsUseCase.js";
 import { IsFollowingUseCase } from "@application/use-cases/follow/IsFollowingUseCase.js";
+import { GetFollowingBatchUseCase } from "@application/use-cases/follow/GetFollowingBatchUseCase.js";
 
 // Services
 import { NotificationService } from "@application/services/NotificationService.js";
@@ -159,6 +161,10 @@ export function createGetPostByIdUseCase(): GetPostByIdUseCase {
   return new GetPostByIdUseCase(createPostRepository(), createLikeRepository());
 }
 
+export function createGetFeedUseCase(): GetFeedUseCase {
+  return new GetFeedUseCase(createPostRepository(), createFollowRepository(), createLikeRepository());
+}
+
 export function createGetPostLikesCountUseCase(): GetPostLikesCountUseCase {
   return new GetPostLikesCountUseCase(createLikeRepository());
 }
@@ -238,7 +244,7 @@ export function createMarkAllAsReadUseCase(): MarkAllAsReadUseCase {
 // ─── Use Cases: Follow ──────────────────────────────────────────────────────
 
 export function createFollowUserUseCase(): FollowUserUseCase {
-  return new FollowUserUseCase(createFollowRepository());
+  return new FollowUserUseCase(createFollowRepository(), eventBus);
 }
 
 export function createUnfollowUserUseCase(): UnfollowUserUseCase {
@@ -261,6 +267,10 @@ export function createIsFollowingUseCase(): IsFollowingUseCase {
   return new IsFollowingUseCase(createFollowRepository());
 }
 
+export function createGetFollowingBatchUseCase(): GetFollowingBatchUseCase {
+  return new GetFollowingBatchUseCase(createFollowRepository());
+}
+
 // Services Factory
 export function createAIService(): AIService {
   return new GeminiAIService();
@@ -280,6 +290,7 @@ export function createPostController(): PostController {
     createUpdatePostUseCase(),
     createGetPostsByUserUseCase(),
     createGetPostByIdUseCase(),
+    createGetFeedUseCase(),
     createGetUserPublicProfileUseCase()
   );
 }
@@ -338,7 +349,8 @@ export function createFollowController(): FollowController {
     createGetFollowersUseCase(),
     createGetFollowingUseCase(),
     createGetFollowCountsUseCase(),
-    createIsFollowingUseCase()
+    createIsFollowingUseCase(),
+    createGetFollowingBatchUseCase()
   );
 }
 

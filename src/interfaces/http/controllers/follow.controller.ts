@@ -5,6 +5,7 @@ import { GetFollowersUseCase } from "../../../application/use-cases/follow/GetFo
 import { GetFollowingUseCase } from "../../../application/use-cases/follow/GetFollowingUseCase.js";
 import { GetFollowCountsUseCase } from "../../../application/use-cases/follow/GetFollowCountsUseCase.js";
 import { IsFollowingUseCase } from "../../../application/use-cases/follow/IsFollowingUseCase.js";
+import { GetFollowingBatchUseCase } from "../../../application/use-cases/follow/GetFollowingBatchUseCase.js";
 
 export class FollowController {
   constructor(
@@ -13,7 +14,8 @@ export class FollowController {
     private getFollowersUseCase: GetFollowersUseCase,
     private getFollowingUseCase: GetFollowingUseCase,
     private getFollowCountsUseCase: GetFollowCountsUseCase,
-    private isFollowingUseCase: IsFollowingUseCase
+    private isFollowingUseCase: IsFollowingUseCase,
+    private getFollowingBatchUseCase: GetFollowingBatchUseCase
   ) {}
 
   async follow(req: Request, res: Response) {
@@ -61,5 +63,17 @@ export class FollowController {
 
     const isFollowing = await this.isFollowingUseCase.execute(followerId, followingId);
     res.json({ isFollowing });
+  }
+
+  async statusBatch(req: Request, res: Response) {
+    const { userIds } = res.locals.validated.body as { userIds: string[] };
+    const followerId = req.user!.userId;
+
+    const result = await this.getFollowingBatchUseCase.execute(followerId, userIds);
+    const statusMap: Record<string, boolean> = {};
+    for (const [id, isFollowing] of result) {
+      statusMap[id] = isFollowing;
+    }
+    res.json({ status: statusMap });
   }
 }

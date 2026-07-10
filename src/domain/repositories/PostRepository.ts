@@ -8,12 +8,15 @@ export interface PostRepository {
     authorId: string;
   }): Promise<Post>;
 
-
   findAll(page: number, limit: number): Promise<{ posts: PostWithAuthor[]; total: number }>;
 
   findByAuthorId(authorId: string): Promise<PostWithAuthor[]>;
 
   findByAuthorIdPaginated(authorId: string, page: number, limit: number): Promise<{ posts: PostWithAuthor[]; total: number }>;
+
+  findByAuthorIds(authorIds: string[], page: number, limit: number): Promise<{ posts: PostWithAuthor[]; total: number }>;
+
+  findAllExcept(authorIds: string[], page: number, limit: number): Promise<{ posts: PostWithAuthor[]; total: number }>;
 
   findById(id: string): Promise<Post | null>;  
   deleteById(id: string): Promise<void>;        

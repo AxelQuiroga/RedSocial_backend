@@ -5,6 +5,8 @@ export interface FollowRepository {
 
   isFollowing(followerId: string, followingId: string): Promise<boolean>;
 
+  isFollowingBatch(followerId: string, followingIds: string[]): Promise<Map<string, boolean>>;
+
   getFollowers(userId: string, page: number, limit: number): Promise<{
     followers: { id: string; username: string; displayName: string | null; avatarUrl: string | null }[];
     total: number;

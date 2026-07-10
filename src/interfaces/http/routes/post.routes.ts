@@ -5,6 +5,7 @@ import { validate } from "../../../middlewares/validate.middleware.js";
 import {
   createPostSchema,
   getPostsSchema,
+  getFeedSchema,
   updatePostSchema,
   deletePostSchema,
   getPostsByUserSchema,
@@ -38,6 +39,10 @@ router.delete("/:id", authMiddleware, validate(deletePostSchema), (req, res) =>
 
 router.get("/user/:username", validate(getPostsByUserSchema), (req, res) =>
   postController.getPostsByUser(req, res)
+);
+
+router.get("/feed", authMiddleware, validate(getFeedSchema), (req, res) =>
+  postController.getFeed(req, res)
 );
 
 router.get("/:id", validate(getPostByIdSchema), (req, res) =>

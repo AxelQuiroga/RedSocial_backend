@@ -71,6 +71,48 @@ export class PrismaPostRepository implements PostRepository {
     return { posts, total };
   }
 
+  async findByAuthorIds(authorIds: string[], page: number, limit: number) {
+    const skip = (page - 1) * limit;
+
+    const [posts, total] = await Promise.all([
+      this.prisma.post.findMany({
+        where: { authorId: { in: authorIds } },
+        skip,
+        take: limit,
+        include: { author: true },
+        orderBy: { createdAt: 'desc' }
+      }),
+      this.prisma.post.count({
+        where: { authorId: { in: authorIds } }
+      })
+    ]);
+
+    return { posts, total };
+  }
+
+  async findAllExcept(authorIds: string[], page: number, limit: number) {
+    const skip = (page - 1) * limit;
+
+    const [posts, total] = await Promise.all([
+      this.prisma.post.findMany({
+        where: {
+          authorId: { notIn: authorIds }
+        },
+        skip,
+        take: limit,
+        include: { author: true },
+        orderBy: { createdAt: 'desc' }
+      }),
+      this.prisma.post.count({
+        where: {
+          authorId: { notIn: authorIds }
+        }
+      })
+    ]);
+
+    return { posts, total };
+  }
+
   async findById(id: string) {
     return await this.prisma.post.findUnique({
       where: {

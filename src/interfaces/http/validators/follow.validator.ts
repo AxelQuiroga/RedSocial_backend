@@ -38,3 +38,9 @@ export const followStatusSchema = {
     userId: z.string().min(1)
   })
 };
+
+export const followStatusBatchSchema = {
+  body: z.object({
+    userIds: z.array(z.string().min(1)).min(1).max(100)
+  }).strict()
+};

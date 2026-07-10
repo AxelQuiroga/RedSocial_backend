@@ -91,4 +91,21 @@ export class NotificationService {
   async handlePostDeleted(postId: string) {
     await this.notificationRepo.deleteByCriteria({ postId });
   }
+
+  async handleFollowCreated(data: {
+    followerId: string;
+    followingId: string;
+  }) {
+    // No notificarse a sí mismo
+    if (data.followerId === data.followingId) return;
+
+    await this.notificationRepo.create({
+      userId: data.followingId,
+      type: 'FOLLOW',
+      title: 'Nuevo seguidor',
+      message: 'Alguien empezó a seguirte',
+      actorId: data.followerId,
+      read: false
+    });
+  }
 }

@@ -6,6 +6,7 @@ import { DeletePostUseCase } from "../../../application/use-cases/post/DeletePos
 import { UpdatePostUseCase } from "../../../application/use-cases/post/UpdatePostUseCase.js";
 import { GetPostsByUserUseCase } from "../../../application/use-cases/post/GetPostsByUserUseCase.js";
 import { GetPostByIdUseCase } from "../../../application/use-cases/post/GetPostByIdUseCase.js";
+import { GetFeedUseCase } from "../../../application/use-cases/post/GetFeedUseCase.js";
 import { GetUserPublicProfileUseCase } from "../../../application/use-cases/user/GetUserPublicProfileUseCase.js";
 import type { CreatePostRequest } from "../dtos/post/CreatePostRequest.js";
 import type { UpdatePostRequest } from "../dtos/post/UpdatePostRequest.js";
@@ -26,6 +27,7 @@ export class PostController {
     private updatePostUseCase: UpdatePostUseCase,
     private getPostsByUserUseCase: GetPostsByUserUseCase,
     private getPostByIdUseCase: GetPostByIdUseCase,
+    private getFeedUseCase: GetFeedUseCase,
     private getUserPublicProfileUseCase: GetUserPublicProfileUseCase
   ) { }
 
@@ -93,6 +95,29 @@ export class PostController {
 
     const post = await this.getPostByIdUseCase.execute(id, userId);
     res.json(toPostWithAuthorResponse(post));
+  }
+
+  async getFeed(req: Request, res: Response) {
+    if (!req.user?.userId) {
+      res.status(401).json({ error: "No autorizado" });
+      return;
+    }
+    const { page, limit } = res.locals.validated.query as { page: number; limit: number };
+
+    const { posts, total, fromFollowed } = await this.getFeedUseCase.execute(
+      req.user.userId, page, limit
+    );
+
+    res.json({
+      data: posts,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+        fromFollowed
+      }
+    });
   }
 
   async getPostsByUser(req: Request, res: Response) {
